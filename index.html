@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Bird</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+let sizeX = 350;
+let sizeY = 650;
+
+// BIRD
+let birdWidth = 40;
+let birdHeight = birdWidth * 0.9;
+let birdX = 0.25 * sizeX;
+let birdY = 0;
+let fallSpeed = 6.5;
+let jumpSpeed = fallSpeed * 1.5;
+
+// PIPE
+let pipeX;
+let pipeLength = sizeY / 3;
+let pipeWidth = 50;
+let ornWidth = pipeWidth + pipeWidth / 10;
+let ornHeight = pipeLength / 12;
+let pipeChange;
+
+// GAME & GENERAL
+let highscoreReached = false;
+let highscore = 0;
+let pipeSpeed = 2;
+let score = 0;
+let hasCollided = false;  // renamed from 'collision' to avoid conflict with checkCollision()
+let gameOver = false;
+let f = 0;
+
+function gameReset() {
+  birdY = 0;
+  pipeX = sizeX * 2;
+  gameOver = false;
+  f = 0;
+  score = 0;
+  highscoreReached = false;
+  hasCollided = false;
+  fallSpeed = 8;
+}
+
+function setup() {
+  createCanvas(sizeX, sizeY);
+  stroke(0);
+  pipeX = sizeX * 2;
+  pipeChange = random(sizeY / 3);
+}
+
+function draw() {
+  background(137, 205, 245);
+  fill(255);
+  f += 1;
+  rectMode(CENTER);
+  drawBackground();
+  drawPipe(pipeX);
+  drawBird({ x: birdX, y: birdY });
+  drawForeground();
+  scoreBoard();
+
+  if (!gameOver) {
+    // BIRD MOVEMENT
+    if (!hasCollided && keyIsPressed && keyCode === UP_ARROW) {
+      birdY -= jumpSpeed;
+    } else {
+      birdY += fallSpeed;
+    }
+
+    // COLLISION CHECK
+    if (checkCollision()) {
+      hasCollided = true;
+      fallSpeed += 1;
+    } else {
+      pipeX -= pipeSpeed;
+
+      // PIPE MOVEMENT + SCORE
+      if (pipeX < -pipeWidth) {
+        score += 1;
+        pipeChange = random(10) * 15;
+        if (score % 2 === 0) pipeChange *= -1;
+        pipeX = sizeX + pipeWidth;
+
+        if (score > highscore) {
+          highscore = score;
+          highscoreReached = true;
+        }
+      }
+    }
+
+    // GAME OVER
+    if (birdY > sizeY - birdHeight / 2) {
+      gameOver = true;
+    }
+  } else {
+    gameOverMessage();
+    if (keyIsPressed && keyCode === 9) gameReset(); // TAB key
+  }
+}
+
+function drawPipe(px) {
+  fill(45, 150, 66);
+  // TOP PIPE
+  rect(px, 0 + pipeChange, pipeWidth, pipeLength * 2);
+  rect(px, pipeLength - ornHeight / 2 + pipeChange, ornWidth, ornHeight);
+  // BOTTOM PIPE
+  rect(px, sizeY + pipeChange, pipeWidth, pipeLength * 2);
+  rect(px, sizeY - pipeLength + ornHeight / 2 + pipeChange, ornWidth, ornHeight);
+  fill(255);
+}
+
+function drawBird(pos) {
+  // BODY
+  fill(255, 243, 20);
+  ellipse(pos.x, pos.y, birdWidth, birdHeight);
+  // WING
+  fill(255);
+  ellipse(pos.x - birdWidth * 0.35, pos.y + sin(f) * 5, 0.5 * birdWidth, 0.4 * birdHeight);
+  // EYE white
+  ellipse(pos.x + birdWidth * 0.3, pos.y - birdWidth * 0.2, 0.4 * birdWidth, 0.5 * birdHeight);
+  // EYE pupil
+  fill(0);
+  ellipse(pos.x + birdWidth * 0.4, pos.y - birdWidth * 0.25, 0.05 * birdWidth, 0.2 * birdHeight);
+  // BEAK
+  fill(250, 123, 5);
+  ellipse(pos.x + birdWidth * 0.45, pos.y + birdHeight * 0.08, 0.4 * birdWidth, 0.15 * birdHeight);
+  ellipse(pos.x + birdWidth * 0.43, pos.y + birdHeight * 0.2, 0.3 * birdWidth, 0.15 * birdHeight);
+  fill(255);
+}
+
+function drawBackground() {
+  fill(255);
+  drawCloud(0.1 * sizeX, 50, 0.1 * sizeX);
+  drawCloud(0.4 * sizeX, 100, 0.15 * sizeX);
+  drawCloud(0.6 * sizeX, 200, 0.09 * sizeX);
+  drawCloud(0.9 * sizeX, 80, 0.15 * sizeX);
+}
+
+function drawForeground() {
+  drawCloud(0.2 * sizeX, sizeY, 0.27 * sizeX);
+  drawCloud(0.3 * sizeX, sizeY, 0.1 * sizeX);
+  drawCloud(0.7 * sizeX, sizeY, 0.15 * sizeX);
+  drawCloud(0.9 * sizeX, sizeY, 0.2 * sizeX);
+}
+
+function drawCloud(cloudX, cloudY, size) {
+  noStroke();
+  ellipse(cloudX, cloudY, size, size);
+  ellipse(cloudX + 0.5 * size, cloudY + 0.1 * size, 0.8 * size, 0.8 * size);
+  ellipse(cloudX - 0.5 * size, cloudY + 0.1 * size, 0.8 * size, 0.8 * size);
+  ellipse(cloudX + 0.9 * size, cloudY + 0.15 * size, 0.5 * size, 0.5 * size);
+  ellipse(cloudX - 0.9 * size, cloudY + 0.15 * size, 0.5 * size, 0.5 * size);
+  stroke(0);
+}
+
+function checkCollision() {
+  let frontOfBird = birdX + birdWidth / 2;
+  let backOfBird = birdX - birdWidth / 2;
+  let topOfBird = birdY - birdHeight / 2;
+  let bottomOfBird = birdY + birdHeight / 2;
+  let frontOfPipes = pipeX - pipeWidth / 2;
+  let backOfPipes = pipeX + pipeWidth / 2;
+  let bottomOfTopPipe = pipeLength + pipeChange;
+  let topOfBottomPipe = sizeY - pipeLength + pipeChange;
+
+  if (frontOfBird >= frontOfPipes && backOfBird <= backOfPipes) {
+    if (!(topOfBird > bottomOfTopPipe && bottomOfBird < topOfBottomPipe)) {
+      hasCollided = true;
+    }
+  }
+  return hasCollided;
+}
+
+function gameOverMessage() {
+  stroke(0);
+  rectMode(CENTER);
+  rect(sizeX / 2, sizeY / 2, sizeX / 2, sizeY / 4);
+  rectMode(CORNER);
+  fill(0);
+  textAlign(CENTER);
+  textSize(20);
+  text("GAME OVER", sizeX / 2, sizeY / 2);
+  textSize(14);
+  text("Press TAB to replay", sizeX / 2, sizeY / 2 + 30);
+  fill(255);
+}
+
+function scoreBoard() {
+  rectMode(CENTER);
+  if (highscoreReached) {
+    fill(255, 243, 20);
+  }
+  stroke(0);
+  rect(sizeX - sizeX * 0.11, 20, 72, 20);
+  fill(0);
+  textSize(10);
+  text("Highscore: " + highscore, sizeX - sizeX * 0.11, 25);
+  rectMode(CORNER);
+  textAlign(CENTER);
+  textSize(36);
+  text(score, sizeX / 2, 50);
+  fill(255);
+}
+
+// Prevent TAB from switching browser focus
+function keyPressed() {
+  if (keyCode === 9) return false;
+}
+</script>
+</body>
+</html>
