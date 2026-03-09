@@ -21,7 +21,7 @@ export class Bird {
 
   draw() {
     const { p, x, y, w, vy, frame } = this;
-    const r = w / 2;                      // body radius = 20
+    const r = w / 2;   // r = 20
 
     const scared    = vy > 5;
     const straining = vy < -1;
@@ -31,9 +31,8 @@ export class Bird {
       -0.42, 1.25
     );
 
-    // Wing animation: fast + big when straining, limp when scared
     const wingFreq = straining ? 0.52 : scared ? 0.07 : 0.20;
-    const wingAmp  = straining ? 11   : scared ? 5    : 6;
+    const wingAmp  = straining ? 13   : scared ? 6    : 6;
     const flapY    = Math.sin(frame * wingFreq) * wingAmp;
 
     p.push();
@@ -41,175 +40,157 @@ export class Bird {
     p.rotate(tilt);
     p.noStroke();
 
-    // ── Tail feathers (drawn first, behind everything) ─────────────────────
-    p.fill(210, 165, 15);
-    // upper tail feather
-    p.triangle(
-      -r * 0.70, -r * 0.05,
-      -r * 0.72,  r * 0.22,
-      -r * 1.38,  r * 0.08
-    );
-    // lower tail feather (slightly offset)
-    p.fill(195, 150, 10);
-    p.triangle(
-      -r * 0.65,  r * 0.10,
-      -r * 0.70,  r * 0.38,
-      -r * 1.28,  r * 0.32
-    );
+    // ── Tail (behind everything) ───────────────────────────────────────────
+    p.fill(200, 155, 10);
+    p.triangle(-r*0.65, -r*0.08,  -r*0.68,  r*0.26,  -r*1.40,  r*0.06);
+    p.fill(185, 140, 8);
+    p.triangle(-r*0.60,  r*0.12,  -r*0.65,  r*0.44,  -r*1.30,  r*0.36);
 
-    // ── Wing ───────────────────────────────────────────────────────────────
-    p.fill(240, 200, 20);
+    // ── Wing ──────────────────────────────────────────────────────────────
+    p.fill(230, 185, 18);
     if (scared) {
-      // Wings splayed wide — flailing
-      p.ellipse(-r * 0.05, flapY - r * 0.15, r * 1.4, r * 0.55);
+      // Splayed wide — flailing in panic
+      p.ellipse(-r*0.05, flapY - r*0.20, r*1.5, r*0.55);
     } else {
-      p.ellipse(-r * 0.10, flapY + r * 0.05, r * 1.15, r * 0.50);
+      p.ellipse(-r*0.12, flapY + r*0.08, r*1.2, r*0.50);
     }
 
-    // ── Body ───────────────────────────────────────────────────────────────
-    p.fill(255, 220, 25);
-    p.circle(0, 0, w + 2);
+    // ── Body ──────────────────────────────────────────────────────────────
+    p.fill(255, 218, 22);
+    p.circle(0, 0, w + 4);
 
-    // Soft belly highlight
-    p.fill(255, 248, 140, 90);
-    p.ellipse(r * 0.12, r * 0.22, r * 0.85, r * 0.72);
+    // Belly sheen
+    p.fill(255, 248, 145, 85);
+    p.ellipse(r*0.10, r*0.24, r*0.9, r*0.72);
 
-    // ── Face (expression-specific) ─────────────────────────────────────────
-    const eyeX = r * 0.28;
-    const eyeY = -r * 0.18;
+    // ── Beak ─────────────────────────────────────────────────────────────
+    // The beak is big and prominent — the main character feature
 
     if (scared) {
-      // ── SCARED ─────────────────────────────────────────────────────────
-      // Wide eye sclera
-      p.fill(255);
-      p.circle(eyeX, eyeY, r * 0.92);
-
-      // Amber iris
-      p.fill(230, 130, 20);
-      p.circle(eyeX + r * 0.02, eyeY + r * 0.04, r * 0.52);
-
-      // Tiny panicked pupil
-      p.fill(15, 12, 10);
-      p.circle(eyeX + r * 0.02, eyeY + r * 0.04, r * 0.18);
-
-      // Highlight
-      p.fill(255);
-      p.circle(eyeX + r * 0.10, eyeY - r * 0.04, r * 0.09);
-
-      // Eyebrows — shot up in shock
-      p.fill(180, 135, 10);
-      p.beginShape();
-        p.vertex(eyeX - r * 0.30, eyeY - r * 0.52);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.64);
-        p.vertex(eyeX + r * 0.26, eyeY - r * 0.54);
-        p.vertex(eyeX + r * 0.22, eyeY - r * 0.46);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.54);
-        p.vertex(eyeX - r * 0.26, eyeY - r * 0.44);
-      p.endShape(p.CLOSE);
-
-      // Beak open — screaming
-      // Upper beak (tilted up)
-      p.fill(255, 148, 22);
+      // Open wide — screaming
+      // Upper beak — angles up
+      p.fill(255, 155, 18);
       p.triangle(
-        r * 0.52, -r * 0.14,
-        r * 0.52,  r * 0.02,
-        r * 1.08,  r * 0.00
+        r*0.42, -r*0.38,
+        r*0.44,  r*0.04,
+        r*1.62, -r*0.22
       );
-      // Mouth interior
-      p.fill(190, 65, 12);
+      // Dark mouth interior
+      p.fill(185, 65, 12);
       p.triangle(
-        r * 0.52,  r * 0.02,
-        r * 0.52,  r * 0.20,
-        r * 0.98,  r * 0.10
+        r*0.44,  r*0.04,
+        r*0.44,  r*0.36,
+        r*1.30,  r*0.14
       );
-      // Lower beak (drooped)
-      p.fill(230, 122, 15);
+      // Lower beak — droops down
+      p.fill(225, 120, 14);
       p.triangle(
-        r * 0.52,  r * 0.20,
-        r * 0.52,  r * 0.32,
-        r * 0.90,  r * 0.24
-      );
-
-    } else if (straining) {
-      // ── STRAINING ──────────────────────────────────────────────────────
-      // Squinted closed eye — upper-half arc = classic closed eye shape
-      p.fill(25, 18, 8);
-      p.arc(eyeX, eyeY, r * 0.88, r * 0.62, Math.PI, 0, p.CHORD);
-
-      // Effort wrinkle above eye
-      p.stroke(180, 138, 10);
-      p.strokeWeight(1.4);
-      p.noFill();
-      p.arc(eyeX, eyeY - r * 0.42, r * 0.55, r * 0.26, Math.PI + 0.3, 0 - 0.3);
-      p.noStroke();
-
-      // Eyebrow — furrowed, pushed down toward nose
-      p.fill(180, 135, 10);
-      p.beginShape();
-        p.vertex(eyeX - r * 0.30, eyeY - r * 0.40);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.50);
-        p.vertex(eyeX + r * 0.26, eyeY - r * 0.40);
-        p.vertex(eyeX + r * 0.22, eyeY - r * 0.32);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.40);
-        p.vertex(eyeX - r * 0.26, eyeY - r * 0.32);
-      p.endShape(p.CLOSE);
-
-      // Beak — clenched shut, pushed forward with effort
-      p.fill(255, 148, 22);
-      p.triangle(
-        r * 0.52, -r * 0.10,
-        r * 0.52,  r * 0.02,
-        r * 1.10,  r * 0.00
-      );
-      p.fill(220, 115, 15);
-      p.triangle(
-        r * 0.52,  r * 0.02,
-        r * 0.52,  r * 0.12,
-        r * 1.00,  r * 0.06
+        r*0.44,  r*0.36,
+        r*0.44,  r*0.60,
+        r*1.22,  r*0.44
       );
 
     } else {
-      // ── NEUTRAL ────────────────────────────────────────────────────────
-      // Eye sclera
+      // Closed beak (neutral + straining)
+      // Upper beak
+      p.fill(255, 155, 18);
+      p.triangle(
+        r*0.42, -r*0.30,
+        r*0.44,  r*0.06,
+        r*1.60, -r*0.12
+      );
+      // Lower beak
+      p.fill(220, 118, 12);
+      p.triangle(
+        r*0.44,  r*0.06,
+        r*0.44,  r*0.30,
+        r*1.48,  r*0.16
+      );
+    }
+
+    // ── Eye ───────────────────────────────────────────────────────────────
+    const ex = r*0.18;
+    const ey = -r*0.22;
+
+    if (straining) {
+      // Squinted shut — CHORD arc = half-ellipse, flat edge at bottom
+      p.fill(22, 15, 6);
+      p.arc(ex, ey, r*1.0, r*0.68, Math.PI, 0, p.CHORD);
+
+      // Effort wrinkle above
+      p.stroke(175, 132, 8);
+      p.strokeWeight(1.5);
+      p.noFill();
+      p.arc(ex, ey - r*0.48, r*0.60, r*0.28, Math.PI + 0.25, 0 - 0.25);
+      p.noStroke();
+      p.noFill();
+
+      // Furrowed brow
+      p.fill(172, 130, 8);
+      p.beginShape();
+        p.vertex(ex - r*0.36, ey - r*0.44);
+        p.vertex(ex - r*0.04, ey - r*0.54);
+        p.vertex(ex + r*0.30, ey - r*0.44);
+        p.vertex(ex + r*0.26, ey - r*0.35);
+        p.vertex(ex - r*0.04, ey - r*0.44);
+        p.vertex(ex - r*0.32, ey - r*0.35);
+      p.endShape(p.CLOSE);
+
+    } else if (scared) {
+      // Wide, panicked eye
       p.fill(255);
-      p.circle(eyeX, eyeY, r * 0.88);
+      p.circle(ex, ey, r*1.10);
 
-      // Amber iris
-      p.fill(230, 130, 20);
-      p.circle(eyeX + r * 0.02, eyeY, r * 0.50);
+      // Blue iris
+      p.fill(60, 155, 225);
+      p.circle(ex + r*0.04, ey + r*0.05, r*0.58);
 
-      // Pupil
-      p.fill(15, 12, 10);
-      p.circle(eyeX + r * 0.04, eyeY, r * 0.22);
+      // Tiny terror pupil
+      p.fill(10, 8, 8);
+      p.circle(ex + r*0.04, ey + r*0.05, r*0.20);
 
       // Highlight
       p.fill(255);
-      p.circle(eyeX + r * 0.10, eyeY - r * 0.06, r * 0.09);
+      p.circle(ex + r*0.12, ey - r*0.04, r*0.10);
 
-      // Eyebrow — calm, slight arch
-      p.fill(180, 135, 10);
+      // Eyebrows launched skyward
+      p.fill(172, 130, 8);
       p.beginShape();
-        p.vertex(eyeX - r * 0.30, eyeY - r * 0.46);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.56);
-        p.vertex(eyeX + r * 0.26, eyeY - r * 0.46);
-        p.vertex(eyeX + r * 0.22, eyeY - r * 0.38);
-        p.vertex(eyeX - r * 0.02, eyeY - r * 0.46);
-        p.vertex(eyeX - r * 0.26, eyeY - r * 0.38);
+        p.vertex(ex - r*0.36, ey - r*0.60);
+        p.vertex(ex - r*0.04, ey - r*0.74);
+        p.vertex(ex + r*0.30, ey - r*0.60);
+        p.vertex(ex + r*0.26, ey - r*0.50);
+        p.vertex(ex - r*0.04, ey - r*0.62);
+        p.vertex(ex - r*0.32, ey - r*0.50);
       p.endShape(p.CLOSE);
 
-      // Beak — closed, simple triangles
-      p.fill(255, 148, 22);
-      p.triangle(
-        r * 0.52, -r * 0.10,
-        r * 0.52,  r * 0.02,
-        r * 1.08,  r * 0.00
-      );
-      p.fill(220, 115, 15);
-      p.triangle(
-        r * 0.52,  r * 0.02,
-        r * 0.52,  r * 0.12,
-        r * 0.98,  r * 0.06
-      );
+    } else {
+      // Normal eye
+      p.fill(255);
+      p.circle(ex, ey, r*1.0);
+
+      // Blue iris
+      p.fill(60, 155, 225);
+      p.circle(ex + r*0.03, ey, r*0.55);
+
+      // Pupil
+      p.fill(10, 8, 8);
+      p.circle(ex + r*0.05, ey, r*0.26);
+
+      // Highlight
+      p.fill(255);
+      p.circle(ex + r*0.12, ey - r*0.08, r*0.10);
+
+      // Calm brow
+      p.fill(172, 130, 8);
+      p.beginShape();
+        p.vertex(ex - r*0.36, ey - r*0.56);
+        p.vertex(ex - r*0.04, ey - r*0.66);
+        p.vertex(ex + r*0.30, ey - r*0.54);
+        p.vertex(ex + r*0.26, ey - r*0.45);
+        p.vertex(ex - r*0.04, ey - r*0.55);
+        p.vertex(ex - r*0.32, ey - r*0.45);
+      p.endShape(p.CLOSE);
     }
 
     p.pop();
