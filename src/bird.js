@@ -38,12 +38,13 @@ export class Bird {
       -0.28, 0.52
     );
 
-    // Wing: hinge on left side of body, ellipse extends leftward from hinge.
-    // Frequency and amplitude both scale continuously with vy:
-    // going up (vy negative) → fast + wide flap; falling (vy positive) → slow + shallow.
-    const wingFreq  = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.32, 0.10);
-    const wingAmp   = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.38, 0.10);
-    const wingAngle = Math.sin(frame * wingFreq) * wingAmp;
+    // Wing: three-state feel via a base angle + oscillation layered on top.
+    //   baseAngle: negative = wing raised (ascending), positive = wing drooped (falling)
+    //   oscillation: fast+wide going up, slow+shallow going down — always non-zero
+    const wingBase  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.45, 0.28);
+    const wingFreq  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.30, 0.10);
+    const wingAmp   = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.22, 0.07);
+    const wingAngle = wingBase + Math.sin(frame * wingFreq) * wingAmp;
 
     // Blink
     const blinkCycle = this.frame % 210;
@@ -74,10 +75,14 @@ export class Bird {
       p.ellipse(-r * 0.58, r * 0.07, r * 1.28, r * 0.54);
     p.pop();
 
-    // ── Feet — two orange mounds before body ──────────────────────────────────
+    // ── Feet — trail backward in flight, tuck when jumping, hang when falling ──
+    // x: ascending → shift forward (+), falling → trail backward (-)
+    // y: ascending → tuck up (-), falling → hang lower (+)
+    const footX = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL,  r*0.06, -r*0.10);
+    const footY = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -r*0.07,  r*0.07);
     p.fill(...C.feet);
-    p.ellipse(-r*0.18, r*0.88, r*0.52, r*0.72);
-    p.ellipse( r*0.18, r*0.88, r*0.52, r*0.72);
+    p.ellipse(-r*0.18 + footX, r*0.88 + footY, r*0.52, r*0.72);
+    p.ellipse( r*0.18 + footX, r*0.88 + footY, r*0.52, r*0.72);
 
     // ── Body — one circle ─────────────────────────────────────────────────────
     p.fill(...C.body);
