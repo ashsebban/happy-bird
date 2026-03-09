@@ -1,6 +1,7 @@
 import { CONFIG } from './config.js';
 import { Bird } from './bird.js';
 import { Pipe } from './pipe.js';
+import { Background } from './background.js';
 
 const STATE = { PLAYING: 'playing', OVER: 'over' };
 
@@ -9,6 +10,7 @@ export class Game {
     this.p = p;
     this.bird = new Bird(p);
     this.pipe = new Pipe(p);
+    this.background = new Background(p);
     this.score = 0;
     this.highscore = 0;
     this.highscoreReached = false;
@@ -25,14 +27,12 @@ export class Game {
 
   draw() {
     const p = this.p;
-    p.background(137, 205, 245);
-    p.fill(255);
     p.rectMode(p.CENTER);
 
-    this._drawBackground();
+    this.background.update(Math.min(p.deltaTime, 100));
+    this.background.draw();
     this.pipe.draw();
     this.bird.draw();
-    this._drawForeground();
     this._drawScoreboard();
 
     if (this.state === STATE.PLAYING) {
@@ -83,37 +83,6 @@ export class Game {
     this.highscoreReached = false;
     this.collided = false;
     this.state = STATE.PLAYING;
-  }
-
-  _drawBackground() {
-    const p = this.p;
-    const w = CONFIG.WIDTH;
-    p.fill(255);
-    this._drawCloud(0.1 * w, 50,  0.1 * w);
-    this._drawCloud(0.4 * w, 100, 0.15 * w);
-    this._drawCloud(0.6 * w, 200, 0.09 * w);
-    this._drawCloud(0.9 * w, 80,  0.15 * w);
-  }
-
-  _drawForeground() {
-    const p = this.p;
-    const w = CONFIG.WIDTH;
-    const h = CONFIG.HEIGHT;
-    this._drawCloud(0.2 * w, h, 0.27 * w);
-    this._drawCloud(0.3 * w, h, 0.1 * w);
-    this._drawCloud(0.7 * w, h, 0.15 * w);
-    this._drawCloud(0.9 * w, h, 0.2 * w);
-  }
-
-  _drawCloud(cx, cy, size) {
-    const p = this.p;
-    p.noStroke();
-    p.ellipse(cx,             cy,             size,       size);
-    p.ellipse(cx + 0.5 * size, cy + 0.1 * size, 0.8 * size, 0.8 * size);
-    p.ellipse(cx - 0.5 * size, cy + 0.1 * size, 0.8 * size, 0.8 * size);
-    p.ellipse(cx + 0.9 * size, cy + 0.15 * size, 0.5 * size, 0.5 * size);
-    p.ellipse(cx - 0.9 * size, cy + 0.15 * size, 0.5 * size, 0.5 * size);
-    p.stroke(0);
   }
 
   _drawScoreboard() {
