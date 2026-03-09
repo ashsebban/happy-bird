@@ -1,5 +1,15 @@
 import { CONFIG } from './config.js';
 
+const C = {
+  body:  [102, 183, 200],
+  wing:  [79,  163, 181],
+  belly: [234, 220, 203],
+  beak:  [242, 162, 28],
+  feet:  [240, 172, 60],
+  cheek: [246, 195, 195],
+  tuft:  [68,  152, 170],
+};
+
 export class Bird {
   constructor(p) {
     this.p = p;
@@ -21,177 +31,112 @@ export class Bird {
 
   draw() {
     const { p, x, y, w, vy, frame } = this;
-    const r = w / 2;   // r = 20
-
-    const scared    = vy > 5;
-    const straining = vy < -1;
+    const r = w / 2;
 
     const tilt = p.constrain(
-      p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.42, 1.25),
-      -0.42, 1.25
+      p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.28, 0.52),
+      -0.28, 0.52
     );
 
-    const wingFreq = straining ? 0.52 : scared ? 0.07 : 0.20;
-    const wingAmp  = straining ? 13   : scared ? 6    : 6;
-    const flapY    = Math.sin(frame * wingFreq) * wingAmp;
+    // Wing: hinge on left side of body, ellipse extends leftward from hinge.
+    // Frequency and amplitude both scale continuously with vy:
+    // going up (vy negative) → fast + wide flap; falling (vy positive) → slow + shallow.
+    const wingFreq  = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.32, 0.10);
+    const wingAmp   = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.38, 0.10);
+    const wingAngle = Math.sin(frame * wingFreq) * wingAmp;
+
+    // Blink
+    const blinkCycle = this.frame % 210;
+    let blinkT = 0;
+    if (blinkCycle < 10) {
+      blinkT = blinkCycle < 5
+        ? blinkCycle / 5
+        : 1 - (blinkCycle - 5) / 5;
+    }
 
     p.push();
     p.translate(x, y);
     p.rotate(tilt);
     p.noStroke();
 
-    // ── Tail (behind everything) ───────────────────────────────────────────
-    p.fill(200, 155, 10);
-    p.triangle(-r*0.65, -r*0.08,  -r*0.68,  r*0.26,  -r*1.40,  r*0.06);
-    p.fill(185, 140, 8);
-    p.triangle(-r*0.60,  r*0.12,  -r*0.65,  r*0.44,  -r*1.30,  r*0.36);
+    // ── Wing — hinge at left-center of body; ellipse offset left so it
+    //    extends outward. Body (drawn after) covers the inner portion. ─────────
+    p.push();
+      p.translate(-r * 0.48, r * 0.05);
+      p.rotate(wingAngle);
+      p.fill(55, 135, 155);                         // shadow layer
+      p.ellipse(-r * 0.65, r * 0.12, r * 1.45, r * 0.62);
+    p.pop();
+    p.push();
+      p.translate(-r * 0.48, r * 0.05);
+      p.rotate(wingAngle);
+      p.fill(...C.wing);                            // main wing
+      p.ellipse(-r * 0.58, r * 0.07, r * 1.28, r * 0.54);
+    p.pop();
 
-    // ── Wing ──────────────────────────────────────────────────────────────
-    p.fill(230, 185, 18);
-    if (scared) {
-      // Splayed wide — flailing in panic
-      p.ellipse(-r*0.05, flapY - r*0.20, r*1.5, r*0.55);
-    } else {
-      p.ellipse(-r*0.12, flapY + r*0.08, r*1.2, r*0.50);
-    }
+    // ── Feet — two orange mounds before body ──────────────────────────────────
+    p.fill(...C.feet);
+    p.ellipse(-r*0.18, r*0.88, r*0.52, r*0.72);
+    p.ellipse( r*0.18, r*0.88, r*0.52, r*0.72);
 
-    // ── Body ──────────────────────────────────────────────────────────────
-    p.fill(255, 218, 22);
-    p.circle(0, 0, w + 4);
+    // ── Body — one circle ─────────────────────────────────────────────────────
+    p.fill(...C.body);
+    p.circle(0, 0, w);
 
-    // Belly sheen
-    p.fill(255, 248, 145, 85);
-    p.ellipse(r*0.10, r*0.24, r*0.9, r*0.72);
+    // Belly — lighter patch on front
+    p.fill(...C.belly);
+    p.ellipse(r*0.16, r*0.22, r*1.05, r*0.96);
 
-    // ── Beak ─────────────────────────────────────────────────────────────
-    // The beak is big and prominent — the main character feature
+    // ── Head tuft ─────────────────────────────────────────────────────────────
+    p.fill(...C.tuft);
+    p.circle(-r*0.06, -r*0.91, r*0.30);
+    p.circle( r*0.16, -r*0.87, r*0.22);
 
-    if (scared) {
-      // Open wide — screaming
-      // Upper beak — angles up
-      p.fill(255, 155, 18);
-      p.triangle(
-        r*0.42, -r*0.38,
-        r*0.44,  r*0.04,
-        r*1.62, -r*0.22
-      );
-      // Dark mouth interior
-      p.fill(185, 65, 12);
-      p.triangle(
-        r*0.44,  r*0.04,
-        r*0.44,  r*0.36,
-        r*1.30,  r*0.14
-      );
-      // Lower beak — droops down
-      p.fill(225, 120, 14);
-      p.triangle(
-        r*0.44,  r*0.36,
-        r*0.44,  r*0.60,
-        r*1.22,  r*0.44
-      );
+    // ── Beak — drawn BEFORE eye so the eye renders on top ─────────────────────
+    p.fill(...C.beak);
+    p.triangle(
+      r*0.40,  r*0.05,
+      r*0.40,  r*0.26,
+      r*0.72,  r*0.16
+    );
 
-    } else {
-      // Closed beak (neutral + straining)
-      // Upper beak
-      p.fill(255, 155, 18);
-      p.triangle(
-        r*0.42, -r*0.30,
-        r*0.44,  r*0.06,
-        r*1.60, -r*0.12
-      );
-      // Lower beak
-      p.fill(220, 118, 12);
-      p.triangle(
-        r*0.44,  r*0.06,
-        r*0.44,  r*0.30,
-        r*1.48,  r*0.16
-      );
-    }
+    // ── Eye — drawn AFTER beak so it always appears in front ──────────────────
+    const ex = r * 0.28;
+    const ey = -r * 0.18;
+    const sd = r * 0.70;
 
-    // ── Eye ───────────────────────────────────────────────────────────────
-    const ex = r*0.18;
-    const ey = -r*0.22;
+    p.fill(255);
+    p.circle(ex, ey, sd);
 
-    if (straining) {
-      // Squinted shut — CHORD arc = half-ellipse, flat edge at bottom
-      p.fill(22, 15, 6);
-      p.arc(ex, ey, r*1.0, r*0.68, Math.PI, 0, p.CHORD);
+    p.fill(22, 14, 10);
+    p.circle(ex + r*0.03, ey + r*0.02, sd * 0.64);
 
-      // Effort wrinkle above
-      p.stroke(175, 132, 8);
-      p.strokeWeight(1.5);
+    p.fill(255);
+    p.circle(ex + r*0.08, ey - r*0.12, r*0.14);
+
+    // Eyelid blink
+    if (blinkT > 0.02) {
+      const lidY = ey - sd * (1 - blinkT);
+      p.fill(...C.body);
+      p.circle(ex, lidY, sd * 1.06);
+      p.stroke(...C.tuft);
+      p.strokeWeight(1.2);
       p.noFill();
-      p.arc(ex, ey - r*0.48, r*0.60, r*0.28, Math.PI + 0.25, 0 - 0.25);
+      p.arc(ex, lidY, sd * 1.06, sd * 1.06, Math.PI - 1.6, 1.6);
       p.noStroke();
-      p.noFill();
-
-      // Furrowed brow
-      p.fill(172, 130, 8);
-      p.beginShape();
-        p.vertex(ex - r*0.36, ey - r*0.44);
-        p.vertex(ex - r*0.04, ey - r*0.54);
-        p.vertex(ex + r*0.30, ey - r*0.44);
-        p.vertex(ex + r*0.26, ey - r*0.35);
-        p.vertex(ex - r*0.04, ey - r*0.44);
-        p.vertex(ex - r*0.32, ey - r*0.35);
-      p.endShape(p.CLOSE);
-
-    } else if (scared) {
-      // Wide, panicked eye
-      p.fill(255);
-      p.circle(ex, ey, r*1.10);
-
-      // Blue iris
-      p.fill(60, 155, 225);
-      p.circle(ex + r*0.04, ey + r*0.05, r*0.58);
-
-      // Tiny terror pupil
-      p.fill(10, 8, 8);
-      p.circle(ex + r*0.04, ey + r*0.05, r*0.20);
-
-      // Highlight
-      p.fill(255);
-      p.circle(ex + r*0.12, ey - r*0.04, r*0.10);
-
-      // Eyebrows launched skyward
-      p.fill(172, 130, 8);
-      p.beginShape();
-        p.vertex(ex - r*0.36, ey - r*0.60);
-        p.vertex(ex - r*0.04, ey - r*0.74);
-        p.vertex(ex + r*0.30, ey - r*0.60);
-        p.vertex(ex + r*0.26, ey - r*0.50);
-        p.vertex(ex - r*0.04, ey - r*0.62);
-        p.vertex(ex - r*0.32, ey - r*0.50);
-      p.endShape(p.CLOSE);
-
-    } else {
-      // Normal eye
-      p.fill(255);
-      p.circle(ex, ey, r*1.0);
-
-      // Blue iris
-      p.fill(60, 155, 225);
-      p.circle(ex + r*0.03, ey, r*0.55);
-
-      // Pupil
-      p.fill(10, 8, 8);
-      p.circle(ex + r*0.05, ey, r*0.26);
-
-      // Highlight
-      p.fill(255);
-      p.circle(ex + r*0.12, ey - r*0.08, r*0.10);
-
-      // Calm brow
-      p.fill(172, 130, 8);
-      p.beginShape();
-        p.vertex(ex - r*0.36, ey - r*0.56);
-        p.vertex(ex - r*0.04, ey - r*0.66);
-        p.vertex(ex + r*0.30, ey - r*0.54);
-        p.vertex(ex + r*0.26, ey - r*0.45);
-        p.vertex(ex - r*0.04, ey - r*0.55);
-        p.vertex(ex - r*0.32, ey - r*0.45);
-      p.endShape(p.CLOSE);
     }
+
+    // Top eyelid line
+    p.stroke(28, 18, 8);
+    p.strokeWeight(1.7);
+    p.noFill();
+    p.arc(ex, ey, sd * 1.05, sd * 0.82, Math.PI, 0);
+    p.noStroke();
+
+    // ── Cheek blush ───────────────────────────────────────────────────────────
+    p.noStroke();
+    p.fill(...C.cheek, 100);
+    p.circle(ex + r*0.02, ey + r*0.44, r*0.46);
 
     p.pop();
   }

@@ -3,8 +3,8 @@ export const CONFIG = {
   HEIGHT: 650,
 
   BIRD: {
-    WIDTH: 50,
-    HEIGHT: 46,
+    WIDTH: 44,
+    HEIGHT: 44,
     X: 87.5,
     GRAVITY: 0.45,
     JUMP_FORCE: 8.5,

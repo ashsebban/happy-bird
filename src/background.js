@@ -60,17 +60,15 @@ export class Background {
 
   draw() {
     const { zenith, horizon } = this._getSkyColors();
+    // Compute warmth/darkness once per frame and pass through
+    const w = this._warmth();
+    const d = this._darkness();
     this._drawSkyGradient(zenith, horizon);
     this._drawStars();
     this._drawSun();
-    this._drawMountainLayer(this._farPeaks,  this._getFarMountainColor());
-    this._drawMountainLayer(this._nearPeaks, this._getNearMountainColor());
-    this._drawClouds();
-  }
-
-  // Public — lets game.js tint its own elements if needed
-  getCloudColor() {
-    return this._cloudTint();
+    this._drawMountainLayer(this._farPeaks,  this._getFarMountainColor(w, d));
+    this._drawMountainLayer(this._nearPeaks, this._getNearMountainColor(w, d));
+    this._drawClouds(w, d);
   }
 
   // ─── Private ─────────────────────────────────────────────────────────────
@@ -89,12 +87,14 @@ export class Background {
   }
 
   _drawSkyGradient(zenith, horizon) {
+    // Use native Canvas2D gradient — 1 draw call instead of 650 stroke+line pairs
     const p = this.p;
-    for (let y = 0; y < H; y++) {
-      p.stroke(p.lerpColor(zenith, horizon, y / H));
-      p.line(0, y, W, y);
-    }
-    p.noStroke();
+    const ctx = p.drawingContext;
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, `rgb(${p.red(zenith)},${p.green(zenith)},${p.blue(zenith)})`);
+    grad.addColorStop(1, `rgb(${p.red(horizon)},${p.green(horizon)},${p.blue(horizon)})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
   }
 
   _drawStars() {
@@ -179,35 +179,32 @@ export class Background {
     return nightness;
   }
 
-  _getFarMountainColor() {
+  _getFarMountainColor(w, d) {
     const p = this.p;
-    const w = this._warmth(), d = this._darkness();
     const day  = p.color(100, 110, 140);
     const warm = p.color(140,  90, 110);
     const night= p.color( 15,  15,  35);
     return p.lerpColor(p.lerpColor(day, warm, w), night, d);
   }
 
-  _getNearMountainColor() {
+  _getNearMountainColor(w, d) {
     const p = this.p;
-    const w = this._warmth(), d = this._darkness();
     const day  = p.color(50, 60, 80);
     const warm = p.color(90, 50, 70);
     const night= p.color( 8,  8, 20);
     return p.lerpColor(p.lerpColor(day, warm, w), night, d);
   }
 
-  _cloudTint() {
+  _cloudTint(w, d) {
     const p = this.p;
-    const w = this._warmth(), d = this._darkness();
     const white  = p.color(255, 255, 255, 230);
     const orange = p.color(255, 175, 110, 210);
     const dark   = p.color( 55,  55,  75, 180);
     return p.lerpColor(p.lerpColor(white, orange, w), dark, d);
   }
 
-  _drawClouds() {
-    const tint = this._cloudTint();
+  _drawClouds(w, d) {
+    const tint = this._cloudTint(w, d);
     for (const c of this._clouds) this._drawCloud(c.x, c.y, c.size, tint);
   }
 
