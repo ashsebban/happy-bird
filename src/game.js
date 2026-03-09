@@ -17,6 +17,7 @@ export class Game {
     this.collided = false;
     this.state = STATE.READY;
     this._bobT = 0;
+    this._deathTimer = 0;
   }
 
   setup() {
@@ -34,7 +35,11 @@ export class Game {
     this.background.update(Math.min(p.deltaTime, 100));
     this.background.draw();
     this.pipe.draw();
-    this.bird.draw();
+
+    // Only draw bird while it's still on screen
+    if (this.bird.y < CONFIG.HEIGHT + this.bird.h) {
+      this.bird.draw();
+    }
 
     if (this.state === STATE.READY) {
       this._updateReady();
@@ -43,15 +48,21 @@ export class Game {
       this._update();
       this._drawScore();
     } else {
+      // Keep bird falling off screen after game over
+      this._deathTimer++;
+      this.bird.update(false);
       this._drawScore();
-      this._drawGameOver();
+      // Show card only after bird has fallen away (~50 frames)
+      if (this._deathTimer > 50) {
+        this._drawGameOver();
+      }
     }
   }
 
   handleKeyPressed() {
     const p = this.p;
     if (p.keyCode === 9) {                          // TAB always intercepts
-      if (this.state === STATE.OVER) this._reset();
+      if (this.state === STATE.OVER && this._deathTimer > 50) this._reset();
       return false;
     }
     if (p.keyCode === p.UP_ARROW || p.keyCode === 32) {
@@ -69,7 +80,7 @@ export class Game {
   _handleTap() {
     if (this.state === STATE.READY) {
       this.state = STATE.PLAYING;
-    } else if (this.state === STATE.OVER) {
+    } else if (this.state === STATE.OVER && this._deathTimer > 50) {
       this._reset();
     } else if (this.state === STATE.PLAYING && !this.collided) {
       this.bird.vy = -CONFIG.BIRD.JUMP_FORCE;
@@ -118,6 +129,7 @@ export class Game {
     this.collided = false;
     this.state = STATE.READY;
     this._bobT = 0;
+    this._deathTimer = 0;
   }
 
   // ── Score display (shown during play and on game over) ──────────────────────
