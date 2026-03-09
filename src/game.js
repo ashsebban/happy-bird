@@ -10,7 +10,7 @@ export class Game {
     this.p = p;
     this.bird = new Bird(p);
     this.pipe = new Pipe(p);
-    this.background = new Background(p);
+    this.background = null; // initialized in setup() after createCanvas()
     this.score = 0;
     this.highscore = 0;
     this.highscoreReached = false;
@@ -23,6 +23,7 @@ export class Game {
     p.createCanvas(CONFIG.WIDTH, CONFIG.HEIGHT);
     p.stroke(0);
     p.rectMode(p.CENTER);
+    this.background = new Background(p); // p.color() requires createCanvas first
   }
 
   draw() {
