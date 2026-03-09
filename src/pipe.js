@@ -24,14 +24,39 @@ export class Pipe {
     const { p, x, offset } = this;
     const { WIDTH, LENGTH, ORN_WIDTH, ORN_HEIGHT } = CONFIG.PIPE;
 
-    p.fill(45, 150, 66);
-    // top pipe
-    p.rect(x, 0 + offset, WIDTH, LENGTH * 2);
-    p.rect(x, LENGTH - ORN_HEIGHT / 2 + offset, ORN_WIDTH, ORN_HEIGHT);
-    // bottom pipe
-    p.rect(x, CONFIG.HEIGHT + offset, WIDTH, LENGTH * 2);
-    p.rect(x, CONFIG.HEIGHT - LENGTH + ORN_HEIGHT / 2 + offset, ORN_WIDTH, ORN_HEIGHT);
-    p.fill(255);
+    // Top pipe body + cap, Bottom pipe body + cap
+    this._drawPipeBody(x, 0 + offset, WIDTH, LENGTH * 2);
+    this._drawPipeCap(x, LENGTH - ORN_HEIGHT / 2 + offset, ORN_WIDTH, ORN_HEIGHT);
+    this._drawPipeBody(x, CONFIG.HEIGHT + offset, WIDTH, LENGTH * 2);
+    this._drawPipeCap(x, CONFIG.HEIGHT - LENGTH + ORN_HEIGHT / 2 + offset, ORN_WIDTH, ORN_HEIGHT);
+  }
+
+  _drawPipeBody(x, y, w, h) {
+    const p = this.p;
+    // Base
+    p.fill(36, 138, 55);
+    p.noStroke();
+    p.rect(x, y, w, h);
+    // Left highlight strip
+    p.fill(88, 188, 78);
+    p.rect(x - w * 0.30, y, w * 0.22, h);
+    // Right shadow strip
+    p.fill(20, 85, 36);
+    p.rect(x + w * 0.36, y, w * 0.14, h);
+  }
+
+  _drawPipeCap(x, y, w, h) {
+    const p = this.p;
+    // Cap base — slightly lighter than body
+    p.fill(48, 155, 65);
+    p.noStroke();
+    p.rect(x, y, w, h);
+    // Left highlight
+    p.fill(100, 200, 88);
+    p.rect(x - w * 0.30, y, w * 0.22, h);
+    // Right shadow
+    p.fill(24, 95, 40);
+    p.rect(x + w * 0.36, y, w * 0.14, h);
   }
 
   collidesWith(bird) {

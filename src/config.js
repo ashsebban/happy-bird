@@ -4,11 +4,11 @@ export const CONFIG = {
 
   BIRD: {
     WIDTH: 40,
-    HEIGHT: 36,      // width * 0.9
-    X: 87.5,         // 0.25 * WIDTH
-    FALL_SPEED: 6.5,
-    FALL_SPEED_RESET: 8,
-    JUMP_SPEED: 9.75, // 6.5 * 1.5
+    HEIGHT: 36,
+    X: 87.5,
+    GRAVITY: 0.45,
+    JUMP_FORCE: 8.5,
+    MAX_FALL: 13,
   },
 
   PIPE: {
