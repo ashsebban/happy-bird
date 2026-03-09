@@ -19,6 +19,7 @@ export class Bird {
     this.h = CONFIG.BIRD.HEIGHT;
     this.vy = 0;
     this.frame = 0;
+    this.wingPhase = 0;
   }
 
   update(jumping) {
@@ -27,10 +28,13 @@ export class Bird {
     this.vy += CONFIG.BIRD.GRAVITY;
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
+    // Advance wing phase by current frequency each frame — no phase jumps
+    const freq = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.25, 0.08);
+    this.wingPhase += freq;
   }
 
   draw() {
-    const { p, x, y, w, vy, frame } = this;
+    const { p, x, y, w, vy } = this;
     const r = w / 2;
 
     const tilt = p.constrain(
@@ -48,11 +52,10 @@ export class Bird {
     }
 
     // ── Wing ─────────────────────────────────────────────────────────────────
-    // Sin wave flap. Amplitude + frequency both scale with vy:
-    // going up → fast + wide, falling → slow + shallow.
-    const wingFreq  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.25, 0.08);
+    // wingPhase is accumulated in update() so frequency changes never cause
+    // phase jumps — the flap is always smooth and continuous.
     const wingAmp   = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.40, 0.12);
-    const wingAngle = Math.sin(frame * wingFreq) * wingAmp;
+    const wingAngle = Math.sin(this.wingPhase) * wingAmp;
 
     p.push();
     p.translate(x, y);
@@ -157,6 +160,7 @@ export class Bird {
     this.y = 0;
     this.vy = 0;
     this.frame = 0;
+    this.wingPhase = 0;
   }
 
   get top()    { return this.y - this.h / 2; }
