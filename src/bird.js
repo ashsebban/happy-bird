@@ -38,14 +38,6 @@ export class Bird {
       -0.28, 0.52
     );
 
-    // Wing: three-state feel via a base angle + oscillation layered on top.
-    //   baseAngle: negative = wing raised (ascending), positive = wing drooped (falling)
-    //   oscillation: fast+wide going up, slow+shallow going down — always non-zero
-    const wingBase  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.45, 0.28);
-    const wingFreq  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.30, 0.10);
-    const wingAmp   = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.22, 0.07);
-    const wingAngle = wingBase + Math.sin(frame * wingFreq) * wingAmp;
-
     // Blink
     const blinkCycle = this.frame % 210;
     let blinkT = 0;
@@ -59,21 +51,6 @@ export class Bird {
     p.translate(x, y);
     p.rotate(tilt);
     p.noStroke();
-
-    // ── Wing — hinge at left-center of body; ellipse offset left so it
-    //    extends outward. Body (drawn after) covers the inner portion. ─────────
-    p.push();
-      p.translate(-r * 0.48, r * 0.05);
-      p.rotate(wingAngle);
-      p.fill(55, 135, 155);                         // shadow layer
-      p.ellipse(-r * 0.65, r * 0.12, r * 1.45, r * 0.62);
-    p.pop();
-    p.push();
-      p.translate(-r * 0.48, r * 0.05);
-      p.rotate(wingAngle);
-      p.fill(...C.wing);                            // main wing
-      p.ellipse(-r * 0.58, r * 0.07, r * 1.28, r * 0.54);
-    p.pop();
 
     // ── Feet — trail backward in flight, tuck when jumping, hang when falling ──
     // x: ascending → shift forward (+), falling → trail backward (-)
