@@ -47,10 +47,32 @@ export class Bird {
         : 1 - (blinkCycle - 5) / 5;
     }
 
+    // ── Wing ─────────────────────────────────────────────────────────────────
+    // Sin wave flap. Amplitude + frequency both scale with vy:
+    // going up → fast + wide, falling → slow + shallow.
+    const wingFreq  = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.25, 0.08);
+    const wingAmp   = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.40, 0.12);
+    const wingAngle = Math.sin(frame * wingFreq) * wingAmp;
+
     p.push();
     p.translate(x, y);
     p.rotate(tilt);
     p.noStroke();
+
+    // Wing drawn before body so body edge clips the inner half cleanly.
+    // Ellipse center is placed outside the body radius so it's always visible.
+    p.push();
+      p.translate(-r * 0.50, r * 0.10);
+      p.rotate(wingAngle);
+      p.fill(55, 135, 155);
+      p.ellipse(-r * 0.60, 0, r * 1.30, r * 0.55);
+    p.pop();
+    p.push();
+      p.translate(-r * 0.50, r * 0.10);
+      p.rotate(wingAngle);
+      p.fill(...C.wing);
+      p.ellipse(-r * 0.52, -r * 0.04, r * 1.12, r * 0.46);
+    p.pop();
 
     // ── Feet — trail backward in flight, tuck when jumping, hang when falling ──
     // x: ascending → shift forward (+), falling → trail backward (-)
@@ -77,9 +99,9 @@ export class Bird {
     // ── Beak — drawn BEFORE eye so the eye renders on top ─────────────────────
     p.fill(...C.beak);
     p.triangle(
-      r*0.40,  r*0.05,
-      r*0.40,  r*0.26,
-      r*0.72,  r*0.16
+      r*0.36,  r*0.02,
+      r*0.36,  r*0.32,
+      r*0.88,  r*0.17
     );
 
     // ── Eye — drawn AFTER beak so it always appears in front ──────────────────
