@@ -11,7 +11,6 @@ export class Bird {
     this.frame = 0;
     this.wingPhase = 0;
     this.eyeOpenness = 1.0;
-    this.eyeState = 'open'; // hysteresis state: 'open' | 'closed'
   }
 
   update(jumping) {
@@ -24,16 +23,12 @@ export class Bird {
     const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
 
-    // Hysteresis eye state: prevents rapid blinking during tap-tap-tap
-    //   closes when vy < -0.5 (rising), only reopens when vy > 4.0 (falling)
-    //   wide open (afraid) overrides at plummet velocity
+    // Eye states by velocity:
+    //   vy < -3.0  → CLOSED  (intense rising — bird is flying hard)
+    //   vy >= 7.0  → WIDE OPEN (plummet — afraid)
+    //   everything else → normal OPEN
     const vy = this.vy;
-    if (this.eyeState === 'open' && vy < -0.5) {
-      this.eyeState = 'closed';
-    } else if (this.eyeState === 'closed' && vy > 6.0) {
-      this.eyeState = 'open';
-    }
-    const targetOpen = vy >= 7.0 ? 1.18 : this.eyeState === 'open' ? 1.0 : 0.05;
+    const targetOpen = vy < -3.0 ? 0.05 : vy >= 7.0 ? 1.18 : 1.0;
     this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.14;
   }
 
@@ -134,7 +129,7 @@ export class Bird {
 
   accelerateFall() { this.vy += 5; }
   isOutOfBounds()  { return this.y > CONFIG.HEIGHT - this.h / 2; }
-  reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; this.eyeState = 'open'; }
+  reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; }
 
   get top()    { return this.y - this.h / 2; }
   get bottom() { return this.y + this.h / 2; }
