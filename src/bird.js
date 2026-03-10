@@ -10,6 +10,7 @@ export class Bird {
     this.vy = 0;
     this.frame = 0;
     this.wingPhase = 0;
+    this.eyeOpenness = 1.0; // 0 = squint, 1 = fully open
   }
 
   update(jumping) {
@@ -18,9 +19,16 @@ export class Bird {
     this.vy += CONFIG.BIRD.GRAVITY;
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
-    // faster when ascending, slower when falling
+
     const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
+
+    // eyeOpenness chases a velocity-mapped target — lerp absorbs rapid vy crossings
+    const targetOpen = this.p.constrain(
+      this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL * 0.4, 0.05, 1.0),
+      0.05, 1.0
+    );
+    this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.12;
   }
 
   draw() {
@@ -35,7 +43,7 @@ export class Bird {
       -0.32, 0.42
     );
 
-    const ascending = this.vy < 0;
+    const eo = this.eyeOpenness;
 
     p.push();
     p.translate(x, y);
@@ -87,24 +95,26 @@ export class Bird {
     const eW = r * 0.80;
     const eH = r * 0.90;
 
-    if (ascending) {
-      // squinting closed eye — two arcs forming a narrow slit
-      p.stroke(25, 15, 5);
-      p.strokeWeight(1.8);
-      p.noFill();
-      p.arc(eX, eY + r*0.10, eW*0.80, eH*0.52, Math.PI, 0);       // top lid
-      p.arc(eX, eY + r*0.10, eW*0.80, eH*0.16, 0,       Math.PI); // bottom lid
-    } else {
-      // open eye — white oval, round pupil, shine dot
-      p.stroke(25, 15, 5);
-      p.strokeWeight(1.2);
-      p.fill(255);
-      p.ellipse(eX, eY, eW, eH);
+    // eye — height scales with eyeOpenness, top lid arc always drawn
+    p.stroke(25, 15, 5);
+    p.strokeWeight(1.2);
+    p.fill(255);
+    p.ellipse(eX, eY, eW, eH * eo);
+
+    // top eyelid arc always visible (anchors the squint)
+    p.noFill();
+    p.strokeWeight(1.6);
+    p.arc(eX, eY, eW * 0.98, eH * 0.98, Math.PI, 0);
+
+    // pupil + shine fade in as eye opens
+    if (eo > 0.25) {
       p.noStroke();
       p.fill(25, 15, 5);
-      p.circle(eX + r*0.08, eY + r*0.04, r*0.44);
-      p.fill(255);
-      p.circle(eX - r*0.04, eY - r*0.10, r*0.15);
+      p.circle(eX + r*0.08, eY + r*0.04, r*0.44 * eo);
+      if (eo > 0.5) {
+        p.fill(255);
+        p.circle(eX - r*0.04, eY - r*0.10, r*0.15 * eo);
+      }
     }
 
     p.pop();
