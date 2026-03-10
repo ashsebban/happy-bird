@@ -77,14 +77,16 @@ export class Bird {
     p.fill(255, 160, 160, 90);
     p.circle(x + r * 0.58, y + r * 0.14, r * 0.36);
 
-    // eye — tall white oval + thin vertical slit pupil (original style)
+    // eye — white oval sclera, round pupil, shine dot
     p.stroke(25, 15, 5);
     p.strokeWeight(1.2);
     p.fill(255);
     p.ellipse(x + r * 0.60, y - r * 0.40, r * 0.80, r * 0.90);
     p.noStroke();
     p.fill(25, 15, 5);
-    p.ellipse(x + r * 0.80, y - r * 0.50, r * 0.10, r * 0.36);
+    p.circle(x + r * 0.68, y - r * 0.36, r * 0.44);
+    p.fill(255);
+    p.circle(x + r * 0.56, y - r * 0.50, r * 0.15);
   }
 
   accelerateFall() { this.vy += 5; }
