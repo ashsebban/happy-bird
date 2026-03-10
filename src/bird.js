@@ -27,69 +27,87 @@ export class Bird {
     const { p, x, y, w } = this;
     const r = w / 2;
 
-    // wing flap — tighter amplitude, harder when ascending
-    const flapAmp = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, r * 0.20, r * 0.13);
+    const flapAmp = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, r * 0.20, r * 0.13);
     const wingBob = Math.sin(this.wingPhase) * flapAmp;
 
+    const tilt = p.constrain(
+      p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.32, 0.42),
+      -0.32, 0.42
+    );
+
+    const ascending = this.vy < 0;
+
+    p.push();
+    p.translate(x, y);
+    p.rotate(tilt);
     p.noStroke();
 
-    // tail feathers — two small golden triangles, rear
+    // tail feathers
     p.fill(230, 160, 10);
-    p.triangle(
-      x - r * 0.52,  y - r * 0.12,
-      x - r * 0.52,  y + r * 0.28,
-      x - r * 1.05,  y - r * 0.38
-    );
+    p.triangle(-r*0.52, -r*0.12, -r*0.52, r*0.28, -r*1.05, -r*0.38);
     p.fill(255, 190, 20);
-    p.triangle(
-      x - r * 0.52,  y + r * 0.10,
-      x - r * 0.52,  y + r * 0.58,
-      x - r * 1.10,  y + r * 0.62
-    );
+    p.triangle(-r*0.52, r*0.10, -r*0.52, r*0.58, -r*1.10, r*0.62);
 
     // body
     p.stroke(25, 15, 5);
     p.strokeWeight(1.6);
     p.fill(255, 220, 55);
-    p.circle(x, y, w);
+    p.circle(0, 0, w);
 
-    // wing — original proportions: wide white oval, sin(f) flutter
+    // wing
     p.stroke(25, 15, 5);
     p.strokeWeight(1.2);
     p.fill(255);
-    p.ellipse(x - r * 0.70, y + wingBob, r * 1.05, r * 0.756);
+    p.ellipse(-r*0.70, wingBob, r*1.05, r*0.756);
 
-    // feet — two small orange legs with toes, tucked back
+    // feet
     p.stroke(255, 145, 0);
     p.strokeWeight(1.4);
     p.noFill();
-    p.line(x - r * 0.22, y + r * 0.88, x - r * 0.22, y + r * 1.10);
-    p.line(x - r * 0.22, y + r * 1.10, x - r * 0.44, y + r * 1.22);
-    p.line(x - r * 0.22, y + r * 1.10, x - r * 0.02, y + r * 1.22);
-    p.line(x + r * 0.08, y + r * 0.90, x + r * 0.08, y + r * 1.10);
-    p.line(x + r * 0.08, y + r * 1.10, x - r * 0.12, y + r * 1.22);
-    p.line(x + r * 0.08, y + r * 1.10, x + r * 0.28, y + r * 1.22);
+    p.line(-r*0.22, r*0.88, -r*0.22, r*1.10);
+    p.line(-r*0.22, r*1.10, -r*0.44, r*1.22);
+    p.line(-r*0.22, r*1.10, -r*0.02, r*1.22);
+    p.line( r*0.08, r*0.90,  r*0.08, r*1.10);
+    p.line( r*0.08, r*1.10, -r*0.12, r*1.22);
+    p.line( r*0.08, r*1.10,  r*0.28, r*1.22);
 
-    // beak — two stacked ellipses (original style: lips)
+    // beak
     p.noStroke();
     p.fill(250, 123, 5);
-    p.ellipse(x + r * 0.90, y + r * 0.14, r * 0.80, r * 0.27); // top lip
-    p.ellipse(x + r * 0.86, y + r * 0.36, r * 0.60, r * 0.27); // bottom lip
+    p.ellipse(r*0.90, r*0.14, r*0.80, r*0.27);
+    p.ellipse(r*0.86, r*0.36, r*0.60, r*0.27);
 
     // rosy cheek
     p.fill(255, 160, 160, 90);
-    p.circle(x + r * 0.58, y + r * 0.14, r * 0.36);
+    p.circle(r*0.58, r*0.14, r*0.36);
 
-    // eye — white oval sclera, round pupil, shine dot
-    p.stroke(25, 15, 5);
-    p.strokeWeight(1.2);
-    p.fill(255);
-    p.ellipse(x + r * 0.60, y - r * 0.40, r * 0.80, r * 0.90);
-    p.noStroke();
-    p.fill(25, 15, 5);
-    p.circle(x + r * 0.68, y - r * 0.36, r * 0.44);
-    p.fill(255);
-    p.circle(x + r * 0.56, y - r * 0.50, r * 0.15);
+    // eye
+    const eX = r * 0.60;
+    const eY = -r * 0.40;
+    const eW = r * 0.80;
+    const eH = r * 0.90;
+
+    if (ascending) {
+      // squinting closed eye — two arcs forming a narrow slit
+      p.stroke(25, 15, 5);
+      p.strokeWeight(1.8);
+      p.noFill();
+      p.arc(eX, eY + r*0.10, eW*0.80, eH*0.52, Math.PI, 0);       // top lid
+      p.arc(eX, eY + r*0.10, eW*0.80, eH*0.16, 0,       Math.PI); // bottom lid
+    } else {
+      // open eye — white oval, round pupil, shine dot
+      p.stroke(25, 15, 5);
+      p.strokeWeight(1.2);
+      p.fill(255);
+      p.ellipse(eX, eY, eW, eH);
+      p.noStroke();
+      p.fill(25, 15, 5);
+      p.circle(eX + r*0.08, eY + r*0.04, r*0.44);
+      p.fill(255);
+      p.circle(eX - r*0.04, eY - r*0.10, r*0.15);
+    }
+
+    p.pop();
   }
 
   accelerateFall() { this.vy += 5; }
