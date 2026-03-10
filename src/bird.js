@@ -9,6 +9,7 @@ export class Bird {
     this.h = CONFIG.BIRD.HEIGHT;
     this.vy = 0;
     this.frame = 0;
+    this.wingPhase = 0;
   }
 
   update(jumping) {
@@ -17,14 +18,15 @@ export class Bird {
     this.vy += CONFIG.BIRD.GRAVITY;
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
+    this.wingPhase += 0.35;
   }
 
   draw() {
     const { p, x, y, w } = this;
     const r = w / 2;
 
-    // wing flap — bobs up when ascending, hangs down when falling
-    const wingBob = p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -r * 0.30, r * 0.18);
+    // wing flap — continuous sin wave, faster when ascending
+    const wingBob = Math.sin(this.wingPhase) * r * 0.32;
 
     p.noStroke();
 
@@ -71,16 +73,16 @@ export class Bird {
     p.noStroke();
     p.fill(255, 155, 25);
     p.triangle(
-      x + r * 0.68,  y + r * 0.02,
-      x + r * 0.68,  y + r * 0.26,
-      x + r * 1.08,  y + r * 0.13
+      x + r * 0.65,  y - r * 0.02,
+      x + r * 0.65,  y + r * 0.32,
+      x + r * 1.18,  y + r * 0.14
     );
     // lower mandible shadow
     p.fill(220, 115, 10);
     p.triangle(
-      x + r * 0.68,  y + r * 0.16,
-      x + r * 0.68,  y + r * 0.26,
-      x + r * 1.04,  y + r * 0.22
+      x + r * 0.65,  y + r * 0.18,
+      x + r * 0.65,  y + r * 0.32,
+      x + r * 1.12,  y + r * 0.26
     );
 
     // rosy cheek
@@ -112,7 +114,7 @@ export class Bird {
 
   accelerateFall() { this.vy += 5; }
   isOutOfBounds()  { return this.y > CONFIG.HEIGHT - this.h / 2; }
-  reset()          { this.y = 0; this.vy = 0; this.frame = 0; }
+  reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; }
 
   get top()    { return this.y - this.h / 2; }
   get bottom() { return this.y + this.h / 2; }
