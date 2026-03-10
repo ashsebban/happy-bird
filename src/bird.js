@@ -30,7 +30,7 @@ export class Bird {
     const vy = this.vy;
     if (this.eyeState === 'open' && vy < -0.5) {
       this.eyeState = 'closed';
-    } else if (this.eyeState === 'closed' && vy > 4.0) {
+    } else if (this.eyeState === 'closed' && vy > 6.0) {
       this.eyeState = 'open';
     }
     const targetOpen = vy >= 7.0 ? 1.18 : this.eyeState === 'open' ? 1.0 : 0.05;
