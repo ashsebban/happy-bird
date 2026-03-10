@@ -28,7 +28,7 @@ export class Bird {
     const r = w / 2;
 
     // wing flap — tighter amplitude, harder when ascending
-    const flapAmp = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, r * 0.30, r * 0.10);
+    const flapAmp = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, r * 0.32, r * 0.22);
     const wingBob = Math.sin(this.wingPhase) * flapAmp;
 
     p.noStroke();
