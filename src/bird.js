@@ -80,11 +80,17 @@ export class Bird {
     p.line( r*0.08, r*1.10, -r*0.12, r*1.22);
     p.line( r*0.08, r*1.10,  r*0.28, r*1.22);
 
-    // beak
+    // beak — lips split open when plummeting (eo > 1.0)
+    const mouthGap = eo > 1.0 ? (eo - 1.0) / 0.18 * r * 0.22 : 0;
     p.noStroke();
     p.fill(250, 123, 5);
-    p.ellipse(r*0.90, r*0.14, r*0.80, r*0.27);
-    p.ellipse(r*0.86, r*0.36, r*0.60, r*0.27);
+    p.ellipse(r*0.90, r*0.14 - mouthGap, r*0.80, r*0.27); // top lip
+    p.ellipse(r*0.86, r*0.36 + mouthGap, r*0.60, r*0.27); // bottom lip
+    // tongue/inside when open
+    if (mouthGap > r * 0.05) {
+      p.fill(220, 80, 80);
+      p.ellipse(r*0.88, r*0.25, r*0.40, mouthGap * 1.2);
+    }
 
     // rosy cheek
     p.fill(255, 160, 160, 90);
@@ -98,13 +104,13 @@ export class Bird {
 
     // eye — height scales with eyeOpenness, top lid arc always drawn
     p.stroke(25, 15, 5);
-    p.strokeWeight(1.2);
+    p.strokeWeight(0.7);
     p.fill(255);
     p.ellipse(eX, eY, eW, eH * eo);
 
     // top eyelid arc always visible (anchors the squint)
     p.noFill();
-    p.strokeWeight(1.6);
+    p.strokeWeight(0.9);
     p.arc(eX, eY, eW * 0.98, eH * 0.98, Math.PI, 0);
 
     // pupil + shine fade in as eye opens
