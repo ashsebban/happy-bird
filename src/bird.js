@@ -23,19 +23,12 @@ export class Bird {
     const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
 
-    // Eye states:
-    //   CLOSED (0.05) : vy < -3.0  — hard ascending, effort squint
-    //   buffer        : -3.0 to -1.0
-    //   OPEN   (1.00) : vy >= -1.0 — normal, falling, plummeting (all open)
+    // Eye states (lerp handles all transitions):
+    //   vy < 2.0  → CLOSED (going up + coasting low fall)
+    //   vy < 7.0  → OPEN   (normal fall)
+    //   vy >= 7.0 → WIDE OPEN (plummet, slightly exaggerated)
     const vy = this.vy;
-    let targetOpen;
-    if (vy < -3.0) {
-      targetOpen = 0.05;
-    } else if (vy < -1.0) {
-      targetOpen = this.p.map(vy, -3.0, -1.0, 0.05, 1.0);
-    } else {
-      targetOpen = 1.0;
-    }
+    const targetOpen = vy < 2.0 ? 0.05 : vy < 7.0 ? 1.0 : 1.18;
     this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.14;
   }
 
