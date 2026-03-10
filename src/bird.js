@@ -50,66 +50,41 @@ export class Bird {
     p.fill(255, 220, 55);
     p.circle(x, y, w);
 
-    // wing — lighter yellow, animated, sits on left side of body
+    // wing — original proportions: wide white oval, sin(f) flutter
     p.stroke(25, 15, 5);
-    p.strokeWeight(1.4);
-    p.fill(255, 240, 130);
-    p.ellipse(x - r * 0.28, y + r * 0.18 + wingBob, r * 1.18, r * 0.46);
+    p.strokeWeight(1.2);
+    p.fill(255);
+    p.ellipse(x - r * 0.70, y + wingBob, r * 1.00, r * 0.72);
 
     // feet — two small orange legs with toes, tucked back
     p.stroke(255, 145, 0);
     p.strokeWeight(1.4);
     p.noFill();
-    // back foot
     p.line(x - r * 0.22, y + r * 0.88, x - r * 0.22, y + r * 1.10);
     p.line(x - r * 0.22, y + r * 1.10, x - r * 0.44, y + r * 1.22);
     p.line(x - r * 0.22, y + r * 1.10, x - r * 0.02, y + r * 1.22);
-    // front foot
     p.line(x + r * 0.08, y + r * 0.90, x + r * 0.08, y + r * 1.10);
     p.line(x + r * 0.08, y + r * 1.10, x - r * 0.12, y + r * 1.22);
     p.line(x + r * 0.08, y + r * 1.10, x + r * 0.28, y + r * 1.22);
 
-    // beak — small cute orange triangle, lower-right of face
+    // beak — two stacked ellipses (original style: lips)
     p.noStroke();
-    p.fill(255, 155, 25);
-    p.triangle(
-      x + r * 0.65,  y - r * 0.02,
-      x + r * 0.65,  y + r * 0.32,
-      x + r * 1.18,  y + r * 0.14
-    );
-    // lower mandible shadow
-    p.fill(220, 115, 10);
-    p.triangle(
-      x + r * 0.65,  y + r * 0.18,
-      x + r * 0.65,  y + r * 0.32,
-      x + r * 1.12,  y + r * 0.26
-    );
+    p.fill(250, 123, 5);
+    p.ellipse(x + r * 0.90, y + r * 0.14, r * 0.80, r * 0.27); // top lip
+    p.ellipse(x + r * 0.86, y + r * 0.36, r * 0.60, r * 0.27); // bottom lip
 
     // rosy cheek
     p.fill(255, 160, 160, 90);
     p.circle(x + r * 0.58, y + r * 0.14, r * 0.36);
 
-    // back eye (slightly smaller, peeking out)
+    // eye — tall white oval + thin vertical slit pupil (original style)
     p.stroke(25, 15, 5);
     p.strokeWeight(1.2);
     p.fill(255);
-    p.circle(x + r * 0.20, y - r * 0.28, r * 0.52);
+    p.ellipse(x + r * 0.60, y - r * 0.40, r * 0.80, r * 0.90);
     p.noStroke();
     p.fill(25, 15, 5);
-    p.circle(x + r * 0.24, y - r * 0.25, r * 0.28);
-    p.fill(255);
-    p.circle(x + r * 0.18, y - r * 0.33, r * 0.10);
-
-    // front eye (main, larger, happy)
-    p.stroke(25, 15, 5);
-    p.strokeWeight(1.2);
-    p.fill(255);
-    p.circle(x + r * 0.52, y - r * 0.26, r * 0.64);
-    p.noStroke();
-    p.fill(25, 15, 5);
-    p.circle(x + r * 0.57, y - r * 0.22, r * 0.36);
-    p.fill(255);
-    p.circle(x + r * 0.48, y - r * 0.34, r * 0.14);
+    p.ellipse(x + r * 0.80, y - r * 0.50, r * 0.10, r * 0.36);
   }
 
   accelerateFall() { this.vy += 5; }
