@@ -19,7 +19,7 @@ export class Bird {
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
     // faster when ascending, slower when falling
-    const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.40, 0.48);
+    const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
   }
 
