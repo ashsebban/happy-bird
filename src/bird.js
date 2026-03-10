@@ -18,15 +18,18 @@ export class Bird {
     this.vy += CONFIG.BIRD.GRAVITY;
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
-    this.wingPhase += 0.35;
+    // faster when ascending, slower when falling
+    const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.58, 0.26);
+    this.wingPhase += flapSpeed;
   }
 
   draw() {
     const { p, x, y, w } = this;
     const r = w / 2;
 
-    // wing flap — continuous sin wave, faster when ascending
-    const wingBob = Math.sin(this.wingPhase) * r * 0.32;
+    // wing flap — tighter amplitude, harder when ascending
+    const flapAmp = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, r * 0.30, r * 0.10);
+    const wingBob = Math.sin(this.wingPhase) * flapAmp;
 
     p.noStroke();
 
