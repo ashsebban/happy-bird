@@ -23,12 +23,9 @@ export class Bird {
     const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
 
-    // Eye states by velocity:
-    //   vy < -3.0  → CLOSED  (intense rising — bird is flying hard)
-    //   vy >= 7.0  → WIDE OPEN (plummet — afraid)
-    //   everything else → normal OPEN
+    // Eye states: open by default, wide-open afraid only on plummet
     const vy = this.vy;
-    const targetOpen = vy < -3.0 ? 0.05 : vy >= 7.0 ? 1.18 : 1.0;
+    const targetOpen = vy >= 7.0 ? 1.18 : 1.0;
     this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.14;
   }
 
@@ -129,7 +126,7 @@ export class Bird {
 
   accelerateFall() { this.vy += 5; }
   isOutOfBounds()  { return this.y > CONFIG.HEIGHT - this.h / 2; }
-  reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; }
+  reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; this.eyeOpenness = 1.0; }
 
   get top()    { return this.y - this.h / 2; }
   get bottom() { return this.y + this.h / 2; }
