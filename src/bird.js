@@ -110,10 +110,10 @@ export class Bird {
     if (eo > 0.25) {
       p.noStroke();
       p.fill(25, 15, 5);
-      p.circle(eX + r*0.08, eY + r*0.04, r*0.44 * eo);
+      p.circle(eX + r*0.08, eY + r*0.04, r*0.44);
       if (eo > 0.5) {
         p.fill(255);
-        p.circle(eX - r*0.04, eY - r*0.10, r*0.15 * eo);
+        p.circle(eX - r*0.04, eY - r*0.10, r*0.15);
       }
     }
 
