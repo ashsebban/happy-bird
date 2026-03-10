@@ -62,16 +62,25 @@ export class Bird {
     p.rotate(tilt);
     p.noStroke();
 
+    // TAIL — drawn before body so body edge clips the root cleanly
+    p.fill(50, 118, 138);
+    p.noStroke();
+    p.triangle(
+      -r * 0.45, -r * 0.10,
+      -r * 0.45,  r * 0.32,
+      -r * 1.12,  r * 0.58
+    );
+
     // Wing drawn before body so body edge clips the inner half cleanly.
-    // Ellipse center is placed outside the body radius so it's always visible.
+    // Pivot moved forward (under head) so it reads as structural, not decorative.
     p.push();
-      p.translate(-r * 0.50, r * 0.10);
+      p.translate(-r * 0.28, r * 0.06);
       p.rotate(wingAngle);
       p.fill(55, 135, 155);
       p.ellipse(-r * 0.60, 0, r * 1.30, r * 0.55);
     p.pop();
     p.push();
-      p.translate(-r * 0.50, r * 0.10);
+      p.translate(-r * 0.28, r * 0.06);
       p.rotate(wingAngle);
       p.fill(...C.wing);
       p.ellipse(-r * 0.52, -r * 0.04, r * 1.12, r * 0.46);
@@ -90,9 +99,9 @@ export class Bird {
     p.fill(...C.body);
     p.circle(0, 0, w);
 
-    // Belly — lighter patch on front
+    // Belly — lighter patch, smaller and offset lower-forward (not centered)
     p.fill(...C.belly);
-    p.ellipse(r*0.16, r*0.22, r*1.05, r*0.96);
+    p.ellipse(r*0.22, r*0.30, r*0.72, r*0.64);
 
     // ── Head tuft ─────────────────────────────────────────────────────────────
     p.fill(...C.tuft);
@@ -110,7 +119,7 @@ export class Bird {
     // ── Eye — drawn AFTER beak so it always appears in front ──────────────────
     const ex = r * 0.28;
     const ey = -r * 0.18;
-    const sd = r * 0.70;
+    const sd = r * 0.52;
 
     p.fill(255);
     p.circle(ex, ey, sd);
