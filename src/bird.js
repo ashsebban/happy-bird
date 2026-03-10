@@ -23,12 +23,25 @@ export class Bird {
     const flapSpeed = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 1.12, 0.70);
     this.wingPhase += flapSpeed;
 
-    // eyeOpenness chases a velocity-mapped target — lerp absorbs rapid vy crossings
-    const targetOpen = this.p.constrain(
-      this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL * 0.4, 0.05, 1.0),
-      0.05, 1.0
-    );
-    this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.12;
+    // Three eye states with buffer zones:
+    //   CLOSED  (0.05) : vy < -3.5   (active jump)
+    //   NORMAL  (0.65) : -1.5 to 5.0 (wide stable range)
+    //   OPEN    (1.00) : vy > 9.0    (fast fall)
+    // Buffer zones between each state interpolate smoothly.
+    let targetOpen;
+    const vy = this.vy;
+    if (vy < -3.5) {
+      targetOpen = 0.05;
+    } else if (vy < -1.5) {
+      targetOpen = this.p.map(vy, -3.5, -1.5, 0.05, 0.65);
+    } else if (vy <= 5.0) {
+      targetOpen = 0.65;
+    } else if (vy <= 9.0) {
+      targetOpen = this.p.map(vy, 5.0, 9.0, 0.65, 1.0);
+    } else {
+      targetOpen = 1.0;
+    }
+    this.eyeOpenness += (targetOpen - this.eyeOpenness) * 0.14;
   }
 
   draw() {
