@@ -1,15 +1,5 @@
 import { CONFIG } from './config.js';
 
-const C = {
-  body:  [102, 183, 200],
-  wing:  [79,  163, 181],
-  belly: [234, 220, 203],
-  beak:  [242, 162, 28],
-  feet:  [240, 172, 60],
-  cheek: [246, 195, 195],
-  tuft:  [68,  152, 170],
-};
-
 export class Bird {
   constructor(p) {
     this.p = p;
@@ -28,131 +18,74 @@ export class Bird {
     this.vy += CONFIG.BIRD.GRAVITY;
     this.vy = Math.min(this.vy, CONFIG.BIRD.MAX_FALL);
     this.y += this.vy;
-    // Advance wing phase by current frequency each frame — no phase jumps
     const freq = this.p.map(this.vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.25, 0.08);
     this.wingPhase += freq;
   }
 
   draw() {
     const { p, x, y, w, vy } = this;
-    const r = w / 2;
+    const br = w / 2;
 
     const tilt = p.constrain(
       p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -0.28, 0.52),
       -0.28, 0.52
     );
 
-    // Blink
-    const blinkCycle = this.frame % 210;
-    let blinkT = 0;
-    if (blinkCycle < 10) {
-      blinkT = blinkCycle < 5
-        ? blinkCycle / 5
-        : 1 - (blinkCycle - 5) / 5;
-    }
-
-    // ── Wing ─────────────────────────────────────────────────────────────────
-    // wingPhase is accumulated in update() so frequency changes never cause
-    // phase jumps — the flap is always smooth and continuous.
-    const wingAmp   = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.40, 0.12);
-    const wingAngle = Math.sin(this.wingPhase) * wingAmp;
-
     p.push();
     p.translate(x, y);
     p.rotate(tilt);
     p.noStroke();
 
-    // TAIL — drawn before body so body edge clips the root cleanly
-    p.fill(50, 118, 138);
-    p.noStroke();
-    p.triangle(
-      -r * 0.45, -r * 0.10,
-      -r * 0.45,  r * 0.32,
-      -r * 1.12,  r * 0.58
-    );
+    // ── 1 OVAL WING — below horizontal center, extends backward ───────────────
+    const wAngle = Math.sin(this.wingPhase) *
+      p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, 0.42, 0.10);
 
-    // Wing drawn before body so body edge clips the inner half cleanly.
-    // Pivot moved forward (under head) so it reads as structural, not decorative.
     p.push();
-      p.translate(-r * 0.28, r * 0.06);
-      p.rotate(wingAngle);
-      p.fill(55, 135, 155);
-      p.ellipse(-r * 0.60, 0, r * 1.30, r * 0.55);
+      p.translate(0, br * 0.18);
+      p.rotate(wAngle);
+      p.fill(58, 130, 152);
+      p.ellipse(-br * 0.12, 0, br * 1.30, br * 0.48);
     p.pop();
     p.push();
-      p.translate(-r * 0.28, r * 0.06);
-      p.rotate(wingAngle);
-      p.fill(...C.wing);
-      p.ellipse(-r * 0.52, -r * 0.04, r * 1.12, r * 0.46);
+      p.translate(0, br * 0.18);
+      p.rotate(wAngle);
+      p.fill(79, 163, 181);
+      p.ellipse(-br * 0.10, -br * 0.04, br * 1.12, br * 0.36);
     p.pop();
 
-    // ── Feet — trail backward in flight, tuck when jumping, hang when falling ──
-    // x: ascending → shift forward (+), falling → trail backward (-)
-    // y: ascending → tuck up (-), falling → hang lower (+)
-    const footX = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL,  r*0.06, -r*0.10);
-    const footY = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, -r*0.07,  r*0.07);
-    p.fill(...C.feet);
-    p.ellipse(-r*0.18 + footX, r*0.88 + footY, r*0.52, r*0.72);
-    p.ellipse( r*0.18 + footX, r*0.88 + footY, r*0.52, r*0.72);
+    // ── 2 SMALL OVAL FEET — angled backward to read as flight ─────────────────
+    const fShift = p.map(vy, -CONFIG.BIRD.JUMP_FORCE, CONFIG.BIRD.MAX_FALL, br * 0.10, -br * 0.10);
+    p.fill(240, 172, 60);
+    p.ellipse(-br * 0.14 + fShift, br * 0.90, br * 0.36, br * 0.50);
+    p.ellipse( br * 0.14 + fShift, br * 0.90, br * 0.36, br * 0.50);
 
-    // ── Body — one circle ─────────────────────────────────────────────────────
-    p.fill(...C.body);
+    // ── 1 CIRCLE BODY ─────────────────────────────────────────────────────────
+    p.fill(102, 183, 200);
     p.circle(0, 0, w);
 
-    // Belly — lighter patch, smaller and offset lower-forward (not centered)
-    p.fill(...C.belly);
-    p.ellipse(r*0.22, r*0.30, r*0.72, r*0.64);
-
-    // ── Head tuft ─────────────────────────────────────────────────────────────
-    p.fill(...C.tuft);
-    p.circle(-r*0.06, -r*0.91, r*0.30);
-    p.circle( r*0.16, -r*0.87, r*0.22);
-
-    // ── Beak — drawn BEFORE eye so the eye renders on top ─────────────────────
-    p.fill(...C.beak);
+    // ── 1 TRIANGLE BEAK — large, directly in front of eye ─────────────────────
+    // Base flush with front body edge; tip extends well past it
+    p.fill(242, 162, 28);
     p.triangle(
-      r*0.36,  r*0.02,
-      r*0.36,  r*0.32,
-      r*0.88,  r*0.17
+      br * 0.82, -br * 0.18,   // base top
+      br * 0.82,  br * 0.30,   // base bottom
+      br * 1.30,  br * 0.06    // tip
     );
 
-    // ── Eye — drawn AFTER beak so it always appears in front ──────────────────
-    const ex = r * 0.28;
-    const ey = -r * 0.18;
-    const sd = r * 0.52;
+    // ── 1 SMALL CIRCLE EYE — 70% toward front, above beak ────────────────────
+    // diameter = 40% of br (20% of body diameter — beak dominates, not eye)
+    const eX = br * 0.55;
+    const eY = -br * 0.26;
+    const eD = br * 0.42;
 
     p.fill(255);
-    p.circle(ex, ey, sd);
+    p.circle(eX, eY, eD);
 
-    p.fill(22, 14, 10);
-    p.circle(ex + r*0.03, ey + r*0.02, sd * 0.64);
+    p.fill(20, 12, 8);
+    p.circle(eX + br * 0.03, eY + br * 0.02, eD * 0.62);
 
     p.fill(255);
-    p.circle(ex + r*0.08, ey - r*0.12, r*0.14);
-
-    // Eyelid blink
-    if (blinkT > 0.02) {
-      const lidY = ey - sd * (1 - blinkT);
-      p.fill(...C.body);
-      p.circle(ex, lidY, sd * 1.06);
-      p.stroke(...C.tuft);
-      p.strokeWeight(1.2);
-      p.noFill();
-      p.arc(ex, lidY, sd * 1.06, sd * 1.06, Math.PI - 1.6, 1.6);
-      p.noStroke();
-    }
-
-    // Top eyelid line
-    p.stroke(28, 18, 8);
-    p.strokeWeight(1.7);
-    p.noFill();
-    p.arc(ex, ey, sd * 1.05, sd * 0.82, Math.PI, 0);
-    p.noStroke();
-
-    // ── Cheek blush ───────────────────────────────────────────────────────────
-    p.noStroke();
-    p.fill(...C.cheek, 100);
-    p.circle(ex + r*0.02, ey + r*0.44, r*0.46);
+    p.circle(eX + br * 0.07, eY - br * 0.07, eD * 0.26);
 
     p.pop();
   }
