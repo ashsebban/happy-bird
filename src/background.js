@@ -130,28 +130,40 @@ export class Background {
     const t = this.t;
     if (t < 0.22 || t > 0.80) return;
 
-    const u = (t - 0.22) / 0.58;                             // 0 = rising, 1 = set
-    const sinArc = Math.sin(u * Math.PI);
+    const u = (t - 0.22) / 0.58;          // 0 = rising, 1 = setting
+    const sinArc = Math.sin(u * Math.PI); // 0 at horizon, 1 at noon
     const sunX = p.lerp(-20, W + 20, u);
     const sunY = p.lerp(H * 0.60, H * 0.06, sinArc);
     const sunR = 22;
-    // Horizon color: deep orange-red. Midday: near-white with warm tint.
-    const horizonCol = p.color(255, 90, 20);
-    const middayCol  = p.color(255, 252, 220);
-    const sunCol = p.lerpColor(horizonCol, middayCol, sinArc);
 
-    // Haze rings — larger and softer at midday, tighter and warmer at horizon
-    const hazeScale = p.lerp(2.0, 5.5, sinArc);   // compact at horizon, wide haze at noon
-    const hazeAlpha = p.lerp(55,  18,  sinArc);    // more opaque glow at horizon
+    // Multi-stop color: red → orange → yellow → white-yellow
+    // Transitions complete quickly near the horizon so daytime sky reads as white-yellow
+    const redCol    = p.color(255,  40,   5);  // deep red at horizon
+    const orangeCol = p.color(255, 140,  20);  // brief orange just above
+    const yellowCol = p.color(255, 230,  70);  // warm yellow
+    const whiteCol  = p.color(255, 255, 230);  // bright white-yellow at midday
+
+    let sunCol;
+    if (sinArc < 0.10) {
+      sunCol = p.lerpColor(redCol, orangeCol, sinArc / 0.10);
+    } else if (sinArc < 0.28) {
+      sunCol = p.lerpColor(orangeCol, yellowCol, (sinArc - 0.10) / 0.18);
+    } else {
+      sunCol = p.lerpColor(yellowCol, whiteCol, Math.min(1, (sinArc - 0.28) / 0.22));
+    }
+
+    // Haze: warm compact glow at horizon, faint wide bloom at midday
+    const hazeScale = p.lerp(1.8, 5.0, sinArc);
+    const hazeAlpha = p.lerp(65,  14,  sinArc);
     p.noStroke();
-    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.30);
+    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.28);
     p.circle(sunX, sunY, sunR * hazeScale * 2);
     p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.55);
     p.circle(sunX, sunY, sunR * hazeScale * 1.3);
     p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha);
     p.circle(sunX, sunY, sunR * hazeScale * 0.7);
 
-    // Sun disc — bright white-yellow at noon, orange-red at horizon
+    // Sun disc
     p.fill(sunCol);
     p.circle(sunX, sunY, sunR * 2);
   }
