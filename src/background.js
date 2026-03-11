@@ -232,7 +232,7 @@ export class Background {
   // Narrow snow caps — only on the tallest peaks, no flying saucers
   _drawSnowCaps(d) {
     const p = this.p;
-    const snowAlpha = p.lerp(195, 35, d);
+    const snowAlpha = p.lerp(220, 170, d); // stays bright at night — needs contrast
     p.noStroke();
     const pts = this._farPeaks;
     for (let i = 1; i < pts.length - 1; i++) {
@@ -240,11 +240,11 @@ export class Background {
       const prevY   = pts[i - 1][1];
       const nextY   = pts[i + 1][1];
       if (y < prevY && y < nextY) {
-        const capH = (Math.min(prevY, nextY) - y) * 0.22;
-        if (capH < 8) continue; // skip barely-visible nubs
-        p.fill(230, 240, 255, snowAlpha);
-        // Width = capH * 0.55 — narrow proper triangle, not wide saucer
-        p.triangle(x, y, x - capH * 0.55, y + capH, x + capH * 0.55, y + capH);
+        const capH = (Math.min(prevY, nextY) - y) * 0.26; // slightly taller
+        if (capH < 8) continue;
+        p.fill(238, 245, 255, snowAlpha);
+        // Half-width = 0.36 × height → tall pointed triangle, not a saucer
+        p.triangle(x, y, x - capH * 0.36, y + capH, x + capH * 0.36, y + capH);
       }
     }
   }
