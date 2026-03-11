@@ -18,10 +18,11 @@ export class Background {
       { t: 0.30, zen: p.color(80,140, 215), hor: p.color(200, 225, 255) },
       { t: 0.45, zen: p.color(100,175,255), hor: p.color(165, 215, 255) },
       { t: 0.58, zen: p.color(85, 155,235), hor: p.color(185, 225, 255) },
-      { t: 0.68, zen: p.color(60,  90,180), hor: p.color(255, 175,  90) },
-      { t: 0.74, zen: p.color(38,  28, 95), hor: p.color(255,  95,  38) },
-      { t: 0.80, zen: p.color(18,  12, 65), hor: p.color(110,  50,  90) },
-      { t: 0.88, zen: p.color(8,    8, 40), hor: p.color( 30,  20,  70) },
+      { t: 0.68, zen: p.color(78, 128,218), hor: p.color(215, 188, 140) }, // late afternoon — still blue, warm horizon
+      { t: 0.75, zen: p.color(62,  88,182), hor: p.color(255, 162,  72) }, // golden hour
+      { t: 0.80, zen: p.color(40,  28,105), hor: p.color(255,  90,  35) }, // sunset — sun now near horizon
+      { t: 0.85, zen: p.color(18,  12, 65), hor: p.color(110,  50,  90) }, // dusk
+      { t: 0.90, zen: p.color(8,    8, 40), hor: p.color( 30,  20,  70) }, // blue hour
       { t: 1.00, zen: p.color(5,    5, 25), hor: p.color( 12,  12,  45) },
     ];
 
@@ -125,8 +126,8 @@ export class Background {
     const p = this.p;
     const t = this.t;
     let alpha = 0;
-    if (t >= 0.88 || t <= 0.18)      alpha = 255;
-    else if (t > 0.80 && t < 0.88)   alpha = p.map(t, 0.80, 0.88, 0, 255);
+    if (t >= 0.90 || t <= 0.18)      alpha = 255;
+    else if (t > 0.82 && t < 0.90)   alpha = p.map(t, 0.82, 0.90, 0, 255);
     else if (t > 0.18 && t < 0.24)   alpha = p.map(t, 0.18, 0.24, 255, 0);
     if (alpha <= 0) return;
     p.noStroke();
@@ -167,9 +168,9 @@ export class Background {
     const p = this.p;
     const ctx = p.drawingContext;
     const t = this.t;
-    if (t < 0.22 || t > 0.80) return;
+    if (t < 0.22 || t > 0.82) return;
 
-    const u      = (t - 0.22) / 0.58;
+    const u      = (t - 0.22) / 0.60;
     const sinArc = Math.sin(u * Math.PI);
     const sunX   = p.lerp(-20, W + 20, u);
     const sunY   = p.lerp(H * 0.62, H * 0.07, sinArc);
@@ -271,15 +272,15 @@ export class Background {
   _warmth() {
     const t = this.t;
     return Math.min(1, Math.max(0, Math.max(
-      1 - Math.abs(t - 0.24) / 0.10,
-      1 - Math.abs(t - 0.74) / 0.10,
+      1 - Math.abs(t - 0.24) / 0.10,  // sunrise
+      1 - Math.abs(t - 0.78) / 0.10,  // sunset (shifted to match new keyframe)
     )));
   }
 
   _darkness() {
     const t = this.t;
-    if (t >= 0.88 || t <= 0.10) return 1;
-    if (t > 0.80) return this.p.map(t, 0.80, 0.88, 0, 1);
+    if (t >= 0.90 || t <= 0.10) return 1;
+    if (t > 0.82) return this.p.map(t, 0.82, 0.90, 0, 1); // dusk starts later
     if (t < 0.18) return this.p.map(t, 0.10, 0.18, 1, 0);
     return 0;
   }
