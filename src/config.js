@@ -27,13 +27,19 @@ export const CONFIG = {
     CYCLE_DURATION_MS: 900000,     // 15 minutes = one full day/night cycle
     CLOUD_COUNT: 4,
     CLOUD_SCROLL_SPEED: 0.012,     // px per ms
+    // Three hill layers — far to near. Y values are 0–1 fractions of HEIGHT.
+    // Atmospheric perspective: far = pale/hazy, near = dark/saturated.
     FAR_MOUNTAINS: [
-      {x:0.00,y:0.62},{x:0.15,y:0.50},{x:0.30,y:0.58},
-      {x:0.48,y:0.44},{x:0.65,y:0.55},{x:0.82,y:0.47},{x:1.00,y:0.62}
+      {x:0.00,y:0.68},{x:0.16,y:0.56},{x:0.34,y:0.63},
+      {x:0.52,y:0.52},{x:0.70,y:0.60},{x:0.86,y:0.55},{x:1.00,y:0.68}
+    ],
+    MID_MOUNTAINS: [
+      {x:0.00,y:0.74},{x:0.13,y:0.65},{x:0.28,y:0.71},
+      {x:0.44,y:0.62},{x:0.60,y:0.69},{x:0.76,y:0.64},{x:1.00,y:0.74}
     ],
     NEAR_MOUNTAINS: [
-      {x:0.00,y:0.70},{x:0.12,y:0.58},{x:0.28,y:0.66},
-      {x:0.45,y:0.53},{x:0.60,y:0.62},{x:0.78,y:0.56},{x:1.00,y:0.70}
+      {x:0.00,y:0.82},{x:0.10,y:0.74},{x:0.24,y:0.79},
+      {x:0.38,y:0.71},{x:0.54,y:0.77},{x:0.68,y:0.73},{x:0.84,y:0.78},{x:1.00,y:0.82}
     ],
   },
 };

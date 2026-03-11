@@ -58,6 +58,7 @@ export class Game {
     this.background.update(Math.min(p.deltaTime, 100));
     this.background.draw();
     this.pipe.draw();
+    this.background.drawGround(); // ground after pipes so they appear planted in it
 
     if (this.bird.y < CONFIG.HEIGHT + this.bird.h) {
       this.bird.draw();

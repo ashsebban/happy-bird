@@ -34,8 +34,9 @@ export class Background {
       r: p.random(0.5, 1.8),
     }));
 
-    // Mountain peak arrays in pixel coordinates
+    // Mountain peak arrays in pixel coordinates (far → mid → near)
     this._farPeaks  = BG.FAR_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
+    this._midPeaks  = BG.MID_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
     this._nearPeaks = BG.NEAR_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
 
     // Clouds spread across the canvas
@@ -67,10 +68,13 @@ export class Background {
     this._drawStars();
     this._drawSun();
     this._drawMountainLayer(this._farPeaks,  this._getFarMountainColor(w, d));
+    this._drawMountainLayer(this._midPeaks,  this._getMidMountainColor(w, d));
     this._drawMountainLayer(this._nearPeaks, this._getNearMountainColor(w, d));
     this._drawClouds(w, d);
-    this._drawGround();
   }
+
+  // Called by Game after pipe.draw() so pipes appear planted in the ground.
+  drawGround() { this._drawGround(); }
 
   // ─── Private ─────────────────────────────────────────────────────────────
 
@@ -185,19 +189,29 @@ export class Background {
     return nightness;
   }
 
+  // Atmospheric perspective: far = pale/hazy (barely separates from sky),
+  // mid = muted mid-tone, near = dark saturated silhouette.
   _getFarMountainColor(w, d) {
     const p = this.p;
-    const day  = p.color(100, 110, 140);
-    const warm = p.color(140,  90, 110);
-    const night= p.color( 15,  15,  35);
+    const day  = p.color(168, 188, 210);  // pale blue-gray atmospheric haze
+    const warm = p.color(210, 155, 120);  // warm dusty rose at sunrise/sunset
+    const night= p.color( 18,  16,  38);  // near-invisible at night
+    return p.lerpColor(p.lerpColor(day, warm, w), night, d);
+  }
+
+  _getMidMountainColor(w, d) {
+    const p = this.p;
+    const day  = p.color( 72, 100,  80);  // muted sage green
+    const warm = p.color(105,  68,  48);  // warm ochre/brown
+    const night= p.color( 10,  10,  24);
     return p.lerpColor(p.lerpColor(day, warm, w), night, d);
   }
 
   _getNearMountainColor(w, d) {
     const p = this.p;
-    const day  = p.color(50, 60, 80);
-    const warm = p.color(90, 50, 70);
-    const night= p.color( 8,  8, 20);
+    const day  = p.color( 32,  52,  38);  // dark forest green
+    const warm = p.color( 55,  32,  22);  // dark russet
+    const night= p.color(  5,   5,  12);
     return p.lerpColor(p.lerpColor(day, warm, w), night, d);
   }
 
