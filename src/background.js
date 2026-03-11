@@ -127,21 +127,21 @@ export class Background {
 
   _drawSun() {
     const p = this.p;
+    const ctx = p.drawingContext;
     const t = this.t;
     if (t < 0.22 || t > 0.80) return;
 
     const u = (t - 0.22) / 0.58;          // 0 = rising, 1 = setting
     const sinArc = Math.sin(u * Math.PI); // 0 at horizon, 1 at noon
     const sunX = p.lerp(-20, W + 20, u);
-    const sunY = p.lerp(H * 0.60, H * 0.06, sinArc);
-    const sunR = 22;
+    const sunY = p.lerp(H * 0.62, H * 0.07, sinArc);
+    const sunR = 8;   // small and distant
 
-    // Multi-stop color: red → orange → yellow → white-yellow
-    // Transitions complete quickly near the horizon so daytime sky reads as white-yellow
-    const redCol    = p.color(255,  40,   5);  // deep red at horizon
-    const orangeCol = p.color(255, 140,  20);  // brief orange just above
-    const yellowCol = p.color(255, 230,  70);  // warm yellow
-    const whiteCol  = p.color(255, 255, 230);  // bright white-yellow at midday
+    // Disc color: red → orange → yellow → bright white-yellow, fast transition near horizon
+    const redCol    = p.color(255,  38,   5);
+    const orangeCol = p.color(255, 140,  20);
+    const yellowCol = p.color(255, 228,  60);
+    const whiteCol  = p.color(255, 255, 238);
 
     let sunCol;
     if (sinArc < 0.10) {
@@ -152,20 +152,36 @@ export class Background {
       sunCol = p.lerpColor(yellowCol, whiteCol, Math.min(1, (sinArc - 0.28) / 0.22));
     }
 
-    // Haze: warm compact glow at horizon, faint wide bloom at midday
-    const hazeScale = p.lerp(1.8, 5.0, sinArc);
-    const hazeAlpha = p.lerp(65,  14,  sinArc);
-    p.noStroke();
-    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.28);
-    p.circle(sunX, sunY, sunR * hazeScale * 2);
-    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.55);
-    p.circle(sunX, sunY, sunR * hazeScale * 1.3);
-    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha);
-    p.circle(sunX, sunY, sunR * hazeScale * 0.7);
+    const sr = Math.round(p.red(sunCol));
+    const sg = Math.round(p.green(sunCol));
+    const sb = Math.round(p.blue(sunCol));
 
-    // Sun disc
+    // Wide sky-brightening radial gradient — makes it feel like the sun lights the world
+    const skyGlowR  = Math.max(W, H) * 1.1;
+    const skyAlpha0 = p.lerp(0.28, 0.13, sinArc);
+    const skyGrad = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, skyGlowR);
+    skyGrad.addColorStop(0,    `rgba(${sr},${sg},${sb},${skyAlpha0.toFixed(2)})`);
+    skyGrad.addColorStop(0.25, `rgba(${sr},${sg},${sb},${(skyAlpha0 * 0.35).toFixed(2)})`);
+    skyGrad.addColorStop(1,    `rgba(${sr},${sg},${sb},0)`);
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Tight corona — soft bloom just around the disc, not a large halo
+    const coronaGrad = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 5);
+    coronaGrad.addColorStop(0, `rgba(${sr},${sg},${sb},0.90)`);
+    coronaGrad.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
+    ctx.fillStyle = coronaGrad;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sun disc — sharp, tiny, intense
+    p.noStroke();
     p.fill(sunCol);
     p.circle(sunX, sunY, sunR * 2);
+    // Bright specular core
+    p.fill(255, 255, 255, 210);
+    p.circle(sunX - sunR * 0.18, sunY - sunR * 0.22, sunR * 0.75);
   }
 
   _drawMountainLayer(peaks, col) {
