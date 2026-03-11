@@ -401,16 +401,47 @@ export class Game {
     }
 
     const rowH = 14;
-    lb.forEach((score, i) => {
+    lb.forEach((entry, i) => {
+      const sc  = typeof entry === 'object' ? entry.score : entry;
+      const ts  = typeof entry === 'object' ? entry.ts    : null;
       const rowY = topY + 14 + i * rowH;
-      const isCurrent = score === this.score && i === 0;
+      const isCurrent = sc === this.score && i === 0;
+      const accent = p.color(200, 145, 0);
+      const normal = p.color(50);
+
+      // Rank
       p.textStyle(isCurrent ? p.BOLD : p.NORMAL);
       p.textSize(10);
-      p.fill(isCurrent ? p.color(200, 145, 0) : p.color(50));
+      p.fill(isCurrent ? accent : normal);
       p.textAlign(p.LEFT);
       p.text(`${i + 1}.`, cx - cardW * 0.34, rowY);
-      p.textAlign(p.RIGHT);
-      p.text(score, cx + cardW * 0.34, rowY);
+
+      // Score
+      p.textStyle(isCurrent ? p.BOLD : p.NORMAL);
+      p.textSize(10);
+      p.fill(isCurrent ? accent : normal);
+      p.textAlign(p.LEFT);
+      p.text(sc, cx - cardW * 0.18, rowY);
+
+      // Timestamp — today shows time, older shows "Mon DD"
+      if (ts) {
+        const d   = new Date(ts);
+        const now = new Date();
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        let label;
+        if (d.toDateString() === now.toDateString()) {
+          const h = d.getHours(), mn = d.getMinutes();
+          const ap = h < 12 ? 'am' : 'pm';
+          label = `${h % 12 || 12}:${String(mn).padStart(2, '0')}${ap}`;
+        } else {
+          label = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+        }
+        p.textStyle(p.NORMAL);
+        p.textSize(9);
+        p.fill(160);
+        p.textAlign(p.RIGHT);
+        p.text(label, cx + cardW * 0.34, rowY);
+      }
     });
     p.textAlign(p.CENTER);
     p.textStyle(p.NORMAL);
