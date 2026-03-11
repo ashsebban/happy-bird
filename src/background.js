@@ -87,7 +87,6 @@ export class Background {
     this._drawMoon(d);
     this._drawSun();
     this._drawLayer(this._farPeaks,  this._colFar(w, d));
-    this._drawSnowCaps(d);
     this._drawLayer(this._midPeaks,  this._colMid(w, d));
     this._drawLayer(this._nearHills, this._colNear(w, d));
     this._drawTrees(w, d);
@@ -227,26 +226,6 @@ export class Background {
     p.curveVertex(pts[pts.length - 1][0], pts[pts.length - 1][1]); // last point doubled
     p.curveVertex(pts[pts.length - 1][0], H); // anchor bottom-right
     p.endShape(p.CLOSE);
-  }
-
-  // Narrow snow caps — only on the tallest peaks, no flying saucers
-  _drawSnowCaps(d) {
-    const p = this.p;
-    const snowAlpha = p.lerp(220, 170, d); // stays bright at night — needs contrast
-    p.noStroke();
-    const pts = this._farPeaks;
-    for (let i = 1; i < pts.length - 1; i++) {
-      const [x, y]  = pts[i];
-      const prevY   = pts[i - 1][1];
-      const nextY   = pts[i + 1][1];
-      if (y < prevY && y < nextY) {
-        const capH = (Math.min(prevY, nextY) - y) * 0.26; // slightly taller
-        if (capH < 8) continue;
-        p.fill(238, 245, 255, snowAlpha);
-        // Half-width = 0.36 × height → tall pointed triangle, not a saucer
-        p.triangle(x, y, x - capH * 0.36, y + capH, x + capH * 0.36, y + capH);
-      }
-    }
   }
 
   // Sparse pine trees along near-hill ridge — taller, thinner, elegant
