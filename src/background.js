@@ -31,37 +31,32 @@ export class Background {
       r: p.random(0.5, 1.8),
     }));
 
-    // ── Mountain layers (back → front), sharp vertex() peaks ──────────────────
-    // Layer 1: Distant snow-capped alpine range — very tall, jagged
-    this._snowPeaks = [
-      [0.00, 0.72], [0.05, 0.52], [0.10, 0.63], [0.16, 0.41],
-      [0.21, 0.55], [0.27, 0.44], [0.33, 0.59], [0.40, 0.37],
-      [0.46, 0.51], [0.52, 0.43], [0.58, 0.55], [0.65, 0.45],
-      [0.71, 0.57], [0.78, 0.47], [0.84, 0.61], [0.91, 0.49], [1.00, 0.70],
+    // ── Mountain layers — smooth curveVertex, fewer & bigger peaks ─────────────
+
+    // Layer 1: Distant snow mountains — 3 graceful peaks, very pale/hazy
+    this._farPeaks = [
+      [0.00, 0.68], [0.15, 0.46], [0.32, 0.60], [0.50, 0.42],
+      [0.68, 0.56], [0.84, 0.45], [1.00, 0.66],
     ].map(([x, y]) => [x * W, y * H]);
 
-    // Layer 2: Mid-range mountains — medium height, slightly less sharp
+    // Layer 2: Mid mountains — 4 peaks, medium height
     this._midPeaks = [
-      [0.00, 0.77], [0.08, 0.61], [0.15, 0.71], [0.23, 0.57],
-      [0.31, 0.67], [0.39, 0.58], [0.47, 0.69], [0.55, 0.56],
-      [0.63, 0.67], [0.71, 0.59], [0.79, 0.69], [0.87, 0.61],
-      [0.94, 0.71], [1.00, 0.75],
+      [0.00, 0.76], [0.11, 0.63], [0.25, 0.71], [0.40, 0.59],
+      [0.55, 0.69], [0.70, 0.60], [0.85, 0.70], [1.00, 0.75],
     ].map(([x, y]) => [x * W, y * H]);
 
-    // Layer 3: Dark forested hills — lower, rolling, tree line lives here
+    // Layer 3: Near forested hills — smooth rolling, pine trees along ridge
     this._nearHills = [
-      [0.00, 0.81], [0.09, 0.71], [0.20, 0.77], [0.32, 0.67],
-      [0.44, 0.75], [0.57, 0.69], [0.69, 0.77], [0.81, 0.71],
-      [0.91, 0.79], [1.00, 0.81],
+      [0.00, 0.82], [0.18, 0.72], [0.38, 0.79], [0.58, 0.70],
+      [0.78, 0.78], [1.00, 0.82],
     ].map(([x, y]) => [x * W, y * H]);
 
-    // Layer 4: Foreground rolling meadow — gently undulating just above ground
+    // Layer 4: Foreground meadow — very gentle undulation
     this._fgHills = [
-      [0.00, 0.88], [0.14, 0.83], [0.32, 0.87], [0.52, 0.82],
-      [0.72, 0.86], [0.88, 0.83], [1.00, 0.87],
+      [0.00, 0.88], [0.24, 0.83], [0.52, 0.87], [0.78, 0.83], [1.00, 0.88],
     ].map(([x, y]) => [x * W, y * H]);
 
-    // Pine trees scattered along the near hill ridge
+    // Pine trees sparsely placed along near-hill ridge
     this._trees = this._genTrees();
 
     this._clouds = Array.from({ length: BG.CLOUD_COUNT }, (_, i) => ({
@@ -72,7 +67,7 @@ export class Background {
     }));
   }
 
-  // ── Lifecycle ───────────────────────────────────────────────────────────────
+  // ── Lifecycle ────────────────────────────────────────────────────────────────
 
   update(dt) {
     this.elapsed = (this.elapsed + dt) % BG.CYCLE_DURATION_MS;
@@ -89,8 +84,9 @@ export class Background {
     const d = this._darkness();
     this._drawSkyGradient(zenith, horizon);
     this._drawStars();
+    this._drawMoon(d);
     this._drawSun();
-    this._drawLayer(this._snowPeaks, this._colSnow(w, d));
+    this._drawLayer(this._farPeaks,  this._colFar(w, d));
     this._drawSnowCaps(d);
     this._drawLayer(this._midPeaks,  this._colMid(w, d));
     this._drawLayer(this._nearHills, this._colNear(w, d));
@@ -99,10 +95,9 @@ export class Background {
     this._drawClouds(w, d);
   }
 
-  // Called by Game after pipe.draw() so pipes appear planted in the ground.
   drawGround() { this._drawGround(); }
 
-  // ── Sky ─────────────────────────────────────────────────────────────────────
+  // ── Sky ──────────────────────────────────────────────────────────────────────
 
   _getSkyColors() {
     const t = this.t;
@@ -131,9 +126,9 @@ export class Background {
     const p = this.p;
     const t = this.t;
     let alpha = 0;
-    if (t >= 0.88 || t <= 0.18)        alpha = 255;
-    else if (t > 0.80 && t < 0.88)     alpha = p.map(t, 0.80, 0.88, 0, 255);
-    else if (t > 0.18 && t < 0.24)     alpha = p.map(t, 0.18, 0.24, 255, 0);
+    if (t >= 0.88 || t <= 0.18)      alpha = 255;
+    else if (t > 0.80 && t < 0.88)   alpha = p.map(t, 0.80, 0.88, 0, 255);
+    else if (t > 0.18 && t < 0.24)   alpha = p.map(t, 0.18, 0.24, 255, 0);
     if (alpha <= 0) return;
     p.noStroke();
     for (const s of this._stars) {
@@ -142,17 +137,44 @@ export class Background {
     }
   }
 
+  _drawMoon(d) {
+    if (d < 0.3) return;
+    const p = this.p;
+    const ctx = p.drawingContext;
+    const alpha = p.map(d, 0.3, 1.0, 0, 1);
+    const mx = W * 0.80;
+    const my = H * 0.14;
+    const mr = 11;
+
+    // Soft glow
+    const glow = ctx.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 4);
+    glow.addColorStop(0, `rgba(220,230,255,${(alpha * 0.18).toFixed(2)})`);
+    glow.addColorStop(1, 'rgba(220,230,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(mx, my, mr * 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Moon disc
+    p.noStroke();
+    p.fill(235, 242, 255, alpha * 240);
+    p.circle(mx, my, mr * 2);
+    // Subtle shadow to give it a crescent feel
+    p.fill(18, 16, 45, alpha * 120);
+    p.circle(mx + mr * 0.35, my - mr * 0.2, mr * 1.55);
+  }
+
   _drawSun() {
     const p = this.p;
     const ctx = p.drawingContext;
     const t = this.t;
     if (t < 0.22 || t > 0.80) return;
 
-    const u       = (t - 0.22) / 0.58;
-    const sinArc  = Math.sin(u * Math.PI);
-    const sunX    = p.lerp(-20, W + 20, u);
-    const sunY    = p.lerp(H * 0.62, H * 0.07, sinArc);
-    const sunR    = 8;
+    const u      = (t - 0.22) / 0.58;
+    const sinArc = Math.sin(u * Math.PI);
+    const sunX   = p.lerp(-20, W + 20, u);
+    const sunY   = p.lerp(H * 0.62, H * 0.07, sinArc);
+    const sunR   = 8;
 
     const redCol    = p.color(255,  38,   5);
     const orangeCol = p.color(255, 140,  20);
@@ -160,27 +182,26 @@ export class Background {
     const whiteCol  = p.color(255, 255, 238);
 
     let sunCol;
-    if (sinArc < 0.10)      sunCol = p.lerpColor(redCol, orangeCol, sinArc / 0.10);
+    if (sinArc < 0.10)      sunCol = p.lerpColor(redCol,    orangeCol, sinArc / 0.10);
     else if (sinArc < 0.28) sunCol = p.lerpColor(orangeCol, yellowCol, (sinArc - 0.10) / 0.18);
-    else                    sunCol = p.lerpColor(yellowCol, whiteCol, Math.min(1, (sinArc - 0.28) / 0.22));
+    else                    sunCol = p.lerpColor(yellowCol,  whiteCol,  Math.min(1, (sinArc - 0.28) / 0.22));
 
     const sr = Math.round(p.red(sunCol));
     const sg = Math.round(p.green(sunCol));
     const sb = Math.round(p.blue(sunCol));
 
-    const skyGlowR  = Math.max(W, H) * 1.1;
     const skyAlpha0 = p.lerp(0.28, 0.13, sinArc);
-    const skyGrad   = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, skyGlowR);
+    const skyGrad   = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, Math.max(W, H) * 1.1);
     skyGrad.addColorStop(0,    `rgba(${sr},${sg},${sb},${skyAlpha0.toFixed(2)})`);
     skyGrad.addColorStop(0.25, `rgba(${sr},${sg},${sb},${(skyAlpha0 * 0.35).toFixed(2)})`);
     skyGrad.addColorStop(1,    `rgba(${sr},${sg},${sb},0)`);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, W, H);
 
-    const coronaGrad = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 5);
-    coronaGrad.addColorStop(0, `rgba(${sr},${sg},${sb},0.90)`);
-    coronaGrad.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
-    ctx.fillStyle = coronaGrad;
+    const corona = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 5);
+    corona.addColorStop(0, `rgba(${sr},${sg},${sb},0.90)`);
+    corona.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
+    ctx.fillStyle = corona;
     ctx.beginPath();
     ctx.arc(sunX, sunY, sunR * 5, 0, Math.PI * 2);
     ctx.fill();
@@ -192,74 +213,69 @@ export class Background {
     p.circle(sunX - sunR * 0.18, sunY - sunR * 0.22, sunR * 0.75);
   }
 
-  // ── Mountains ───────────────────────────────────────────────────────────────
+  // ── Mountains ────────────────────────────────────────────────────────────────
 
-  // Sharp angular silhouette using vertex() — no smooth curves
+  // Smooth organic silhouette using curveVertex
   _drawLayer(pts, col) {
     const p = this.p;
     p.fill(col);
     p.noStroke();
     p.beginShape();
-    p.vertex(0, H);
-    for (const [x, y] of pts) p.vertex(x, y);
-    p.vertex(W, H);
+    p.curveVertex(pts[0][0], H);          // anchor bottom-left
+    p.curveVertex(pts[0][0], pts[0][1]);  // first real point (doubled as anchor)
+    for (const [x, y] of pts) p.curveVertex(x, y);
+    p.curveVertex(pts[pts.length - 1][0], pts[pts.length - 1][1]); // last point doubled
+    p.curveVertex(pts[pts.length - 1][0], H); // anchor bottom-right
     p.endShape(p.CLOSE);
   }
 
-  // White snow caps drawn on the peaks of the snow mountain layer
+  // Narrow snow caps — only on the tallest peaks, no flying saucers
   _drawSnowCaps(d) {
     const p = this.p;
-    const snowAlpha = p.lerp(200, 40, d);
+    const snowAlpha = p.lerp(195, 35, d);
     p.noStroke();
-    const pts = this._snowPeaks;
+    const pts = this._farPeaks;
     for (let i = 1; i < pts.length - 1; i++) {
-      const [x, y] = pts[i];
-      const prevY = pts[i - 1][1];
-      const nextY = pts[i + 1][1];
+      const [x, y]  = pts[i];
+      const prevY   = pts[i - 1][1];
+      const nextY   = pts[i + 1][1];
       if (y < prevY && y < nextY) {
-        // Peak — draw a snow triangle sized by how prominent the peak is
-        const capH = (Math.min(prevY, nextY) - y) * 0.30;
-        p.fill(225, 235, 255, snowAlpha);
-        p.triangle(x, y, x - capH * 1.1, y + capH, x + capH * 1.1, y + capH);
-        // Bright highlight at the very tip
-        p.fill(255, 255, 255, snowAlpha * 0.7);
-        p.triangle(x, y, x - capH * 0.45, y + capH * 0.45, x + capH * 0.45, y + capH * 0.45);
+        const capH = (Math.min(prevY, nextY) - y) * 0.22;
+        if (capH < 8) continue; // skip barely-visible nubs
+        p.fill(230, 240, 255, snowAlpha);
+        // Width = capH * 0.55 — narrow proper triangle, not wide saucer
+        p.triangle(x, y, x - capH * 0.55, y + capH, x + capH * 0.55, y + capH);
       }
     }
   }
 
-  // Pine trees as 2-tier triangle silhouettes along the near hill ridge
-  _drawTrees(w, d) {
-    const p = this.p;
-    const base = this._colNear(w, d);
-    // Slightly darker than the hill they sit on
-    const cr = Math.max(0, p.red(base)   - 14);
-    const cg = Math.max(0, p.green(base) - 20);
-    const cb = Math.max(0, p.blue(base)  - 6);
-    p.noStroke();
-    p.fill(cr, cg, cb);
-    for (const { x, y, h, tw } of this._trees) {
-      // Upper (narrower) tier
-      p.triangle(x, y - h,        x - tw * 0.40, y - h * 0.35, x + tw * 0.40, y - h * 0.35);
-      // Lower (wider) tier
-      p.triangle(x, y - h * 0.55, x - tw * 0.58, y,            x + tw * 0.58, y);
-    }
-  }
-
-  // Pre-generate randomised tree positions along the near hill ridge
+  // Sparse pine trees along near-hill ridge — taller, thinner, elegant
   _genTrees() {
     const p = this.p;
     const trees = [];
-    let x = p.random(6, 16);
-    while (x < W - 6) {
+    let x = p.random(12, 24);
+    while (x < W - 10) {
       const y = this._hillY(this._nearHills, x);
-      trees.push({ x, y, h: p.random(13, 23), tw: p.random(7, 11) });
-      x += p.random(10, 22);
+      trees.push({ x, y, h: p.random(18, 28), tw: p.random(5, 8) });
+      x += p.random(18, 32);
     }
     return trees;
   }
 
-  // Linear interpolation of y along a layer's ridge at a given x
+  _drawTrees(w, d) {
+    const p = this.p;
+    const base = this._colNear(w, d);
+    const cr = Math.max(0, p.red(base)   - 12);
+    const cg = Math.max(0, p.green(base) - 18);
+    const cb = Math.max(0, p.blue(base)  - 5);
+    p.noStroke();
+    p.fill(cr, cg, cb);
+    for (const { x, y, h, tw } of this._trees) {
+      p.triangle(x, y - h,        x - tw * 0.38, y - h * 0.38, x + tw * 0.38, y - h * 0.38);
+      p.triangle(x, y - h * 0.52, x - tw * 0.55, y,            x + tw * 0.55, y);
+    }
+  }
+
   _hillY(pts, x) {
     for (let i = 0; i < pts.length - 1; i++) {
       if (x >= pts[i][0] && x <= pts[i + 1][0]) {
@@ -282,51 +298,51 @@ export class Background {
 
   _darkness() {
     const t = this.t;
-    if (t >= 0.88 || t <= 0.10)  return 1;
-    if (t > 0.80)                return this.p.map(t, 0.80, 0.88, 0, 1);
-    if (t < 0.18)                return this.p.map(t, 0.10, 0.18, 1, 0);
+    if (t >= 0.88 || t <= 0.10) return 1;
+    if (t > 0.80) return this.p.map(t, 0.80, 0.88, 0, 1);
+    if (t < 0.18) return this.p.map(t, 0.10, 0.18, 1, 0);
     return 0;
   }
 
-  // ── Layer colors (atmospheric perspective: far = pale/hazy, near = saturated) ─
+  // ── Layer colors — distinct at every time of day ──────────────────────────────
 
-  _colSnow(w, d) {
+  _colFar(w, d) {
     const p = this.p;
-    // Day: pale steel-blue haze. Warm: dusty mauve. Night: near-invisible dark.
+    // Day: pale steel-blue haze  Warm: dusty rose  Night: soft indigo (brighter than mid)
     return p.lerpColor(
-      p.lerpColor(p.color(150, 172, 202), p.color(185, 142, 115), w),
-      p.color(13, 12, 28), d,
+      p.lerpColor(p.color(158, 180, 210), p.color(192, 148, 118), w),
+      p.color(24, 20, 45), d,
     );
   }
 
   _colMid(w, d) {
     const p = this.p;
-    // Day: muted slate-blue. Warm: warm umber. Night: dark navy.
+    // Day: medium slate-blue  Warm: warm umber  Night: dark navy
     return p.lerpColor(
-      p.lerpColor(p.color(62, 85, 116), p.color(92, 62, 48), w),
-      p.color(8, 8, 19), d,
+      p.lerpColor(p.color(68, 92, 125), p.color(98, 65, 50), w),
+      p.color(12, 12, 26), d,
     );
   }
 
   _colNear(w, d) {
     const p = this.p;
-    // Day: dark forest green. Warm: deep russet. Night: near-black.
+    // Day: dark forest green  Warm: deep russet  Night: near-black green-tinted
     return p.lerpColor(
-      p.lerpColor(p.color(30, 60, 38), p.color(50, 33, 20), w),
-      p.color(4, 6, 10), d,
+      p.lerpColor(p.color(32, 62, 40), p.color(52, 34, 22), w),
+      p.color(5, 7, 12), d,
     );
   }
 
   _colFg(w, d) {
     const p = this.p;
-    // Slightly lighter/warmer than near hills to separate the layers
+    // Slightly lighter/warmer than near to separate the foreground plane
     return p.lerpColor(
-      p.lerpColor(p.color(44, 78, 44), p.color(62, 40, 22), w),
-      p.color(6, 8, 13), d,
+      p.lerpColor(p.color(50, 88, 48), p.color(68, 44, 24), w),
+      p.color(7, 9, 14), d,
     );
   }
 
-  // ── Clouds ───────────────────────────────────────────────────────────────────
+  // ── Clouds ────────────────────────────────────────────────────────────────────
 
   _drawClouds(w, d) {
     const p = this.p;
@@ -341,14 +357,14 @@ export class Background {
     const p = this.p;
     p.noStroke();
     p.fill(col);
-    p.ellipse(cx,                cy,               size,       size);
-    p.ellipse(cx + 0.5 * size,   cy + 0.1 * size,  0.8 * size, 0.8 * size);
-    p.ellipse(cx - 0.5 * size,   cy + 0.1 * size,  0.8 * size, 0.8 * size);
-    p.ellipse(cx + 0.9 * size,   cy + 0.15 * size, 0.5 * size, 0.5 * size);
-    p.ellipse(cx - 0.9 * size,   cy + 0.15 * size, 0.5 * size, 0.5 * size);
+    p.ellipse(cx,              cy,               size,       size);
+    p.ellipse(cx + 0.5 * size, cy + 0.1 * size,  0.8 * size, 0.8 * size);
+    p.ellipse(cx - 0.5 * size, cy + 0.1 * size,  0.8 * size, 0.8 * size);
+    p.ellipse(cx + 0.9 * size, cy + 0.15 * size, 0.5 * size, 0.5 * size);
+    p.ellipse(cx - 0.9 * size, cy + 0.15 * size, 0.5 * size, 0.5 * size);
   }
 
-  // ── Ground ───────────────────────────────────────────────────────────────────
+  // ── Ground ────────────────────────────────────────────────────────────────────
 
   _drawGround() {
     const p = this.p;
