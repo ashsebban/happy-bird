@@ -423,12 +423,12 @@ export class Game {
       p.textAlign(p.LEFT);
       p.text(sc, cx - cardW * 0.18, rowY);
 
-      // Timestamp — today shows time, older shows "Mon DD"
+      // Timestamp — today shows time, older shows "Mon DD", legacy shows "—"
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      let label = '—';
       if (ts) {
         const d   = new Date(ts);
         const now = new Date();
-        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        let label;
         if (d.toDateString() === now.toDateString()) {
           const h = d.getHours(), mn = d.getMinutes();
           const ap = h < 12 ? 'am' : 'pm';
@@ -436,12 +436,12 @@ export class Game {
         } else {
           label = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
         }
-        p.textStyle(p.NORMAL);
-        p.textSize(9);
-        p.fill(160);
-        p.textAlign(p.RIGHT);
-        p.text(label, cx + cardW * 0.34, rowY);
       }
+      p.textStyle(p.NORMAL);
+      p.textSize(9);
+      p.fill(isCurrent ? p.color(200, 145, 0) : p.color(160));
+      p.textAlign(p.RIGHT);
+      p.text(label, cx + cardW * 0.34, rowY);
     });
     p.textAlign(p.CENTER);
     p.textStyle(p.NORMAL);
