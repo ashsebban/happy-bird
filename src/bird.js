@@ -125,7 +125,7 @@ export class Bird {
   }
 
   accelerateFall() { this.vy += 5; }
-  isOutOfBounds()  { return this.y > CONFIG.HEIGHT - this.h / 2; }
+  isOutOfBounds()  { return this.y + this.h / 2 >= CONFIG.HEIGHT - CONFIG.GROUND_HEIGHT; }
   reset()          { this.y = 0; this.vy = 0; this.frame = 0; this.wingPhase = 0; this.eyeOpenness = 1.0; }
 
   get top()    { return this.y - this.h / 2; }

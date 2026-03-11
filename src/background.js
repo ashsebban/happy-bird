@@ -69,6 +69,7 @@ export class Background {
     this._drawMountainLayer(this._farPeaks,  this._getFarMountainColor(w, d));
     this._drawMountainLayer(this._nearPeaks, this._getNearMountainColor(w, d));
     this._drawClouds(w, d);
+    this._drawGround();
   }
 
   // ─── Private ─────────────────────────────────────────────────────────────
@@ -206,6 +207,20 @@ export class Background {
   _drawClouds(w, d) {
     const tint = this._cloudTint(w, d);
     for (const c of this._clouds) this._drawCloud(c.x, c.y, c.size, tint);
+  }
+
+  _drawGround() {
+    const p = this.p;
+    const gh = CONFIG.GROUND_HEIGHT;
+    p.noStroke();
+    p.rectMode(p.CORNER);
+    // Dirt base
+    p.fill(101, 72, 42);
+    p.rect(0, H - gh, W, gh);
+    // Grass cap
+    p.fill(86, 175, 60);
+    p.rect(0, H - gh, W, Math.ceil(gh * 0.38));
+    p.rectMode(p.CENTER);
   }
 
   _drawCloud(cx, cy, size, col) {

@@ -5,11 +5,12 @@ export class Pipe {
     this.p = p;
     this.x = CONFIG.WIDTH * 2;
     this.offset = p.random(CONFIG.HEIGHT / 3);
+    this.speed = CONFIG.PIPE.SPEED_INITIAL;
   }
 
   // Move the pipe left. Returns true if it just passed offscreen (score event).
   advance() {
-    this.x -= CONFIG.PIPE.SPEED;
+    this.x -= this.speed;
     return this.x < -CONFIG.PIPE.WIDTH;
   }
 

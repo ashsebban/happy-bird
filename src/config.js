@@ -1,6 +1,7 @@
 export const CONFIG = {
   WIDTH: 350,
   HEIGHT: 650,
+  GROUND_HEIGHT: 24,
 
   BIRD: {
     WIDTH: 44,
@@ -13,7 +14,10 @@ export const CONFIG = {
 
   PIPE: {
     WIDTH: 50,
-    SPEED: 2,
+    SPEED_INITIAL:  2,
+    SPEED_MAX:      3.5,
+    SPEED_INCREMENT: 0.25,
+    SPEED_INTERVAL: 10,   // pipes between speed bumps
     get LENGTH() { return CONFIG.HEIGHT / 3; },
     get ORN_WIDTH() { return CONFIG.PIPE.WIDTH + CONFIG.PIPE.WIDTH / 10; },
     get ORN_HEIGHT() { return CONFIG.PIPE.LENGTH / 12; },
