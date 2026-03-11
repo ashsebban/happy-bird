@@ -55,14 +55,12 @@ export class Bird {
     p.triangle(-r*0.52, r*0.10, -r*0.52, r*0.58, -r*1.10, r*0.62);
 
     // body
-    p.stroke(25, 15, 5);
-    p.strokeWeight(1.6);
+    p.noStroke();
     p.fill(255, 220, 55);
     p.circle(0, 0, w);
 
     // wing
-    p.stroke(25, 15, 5);
-    p.strokeWeight(1.2);
+    p.noStroke();
     p.fill(255);
     p.ellipse(-r*0.70, wingBob, r*1.05, r*0.756);
 

@@ -131,18 +131,23 @@ export class Background {
     const sunX = p.lerp(-20, W + 20, u);
     const sunY = p.lerp(H * 0.60, H * 0.06, sinArc);
     const sunR = 22;
-    const sunCol = p.lerpColor(p.color(255, 80, 0), p.color(255, 255, 200), sinArc);
+    // Horizon color: deep orange-red. Midday: near-white with warm tint.
+    const horizonCol = p.color(255, 90, 20);
+    const middayCol  = p.color(255, 252, 220);
+    const sunCol = p.lerpColor(horizonCol, middayCol, sinArc);
 
-    // Glow rings — larger, more transparent
-    const glowRadii = [sunR * 4.5, sunR * 3, sunR * 2];
-    const glowAlphas = [18, 38, 65];
+    // Haze rings — larger and softer at midday, tighter and warmer at horizon
+    const hazeScale = p.lerp(2.0, 5.5, sinArc);   // compact at horizon, wide haze at noon
+    const hazeAlpha = p.lerp(55,  18,  sinArc);    // more opaque glow at horizon
     p.noStroke();
-    for (let i = 0; i < glowRadii.length; i++) {
-      p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), glowAlphas[i]);
-      p.circle(sunX, sunY, glowRadii[i] * 2);
-    }
+    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.30);
+    p.circle(sunX, sunY, sunR * hazeScale * 2);
+    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha * 0.55);
+    p.circle(sunX, sunY, sunR * hazeScale * 1.3);
+    p.fill(p.red(sunCol), p.green(sunCol), p.blue(sunCol), hazeAlpha);
+    p.circle(sunX, sunY, sunR * hazeScale * 0.7);
 
-    // Sun disc
+    // Sun disc — bright white-yellow at noon, orange-red at horizon
     p.fill(sunCol);
     p.circle(sunX, sunY, sunR * 2);
   }
