@@ -4,7 +4,7 @@ import { Pipe }       from './pipe.js';
 import { Background } from './background.js';
 import { Audio }      from './audio.js';
 import { Particles }  from './particles.js';
-import { submitScore, getTopScores } from './leaderboard.js';
+import { addScore, getTopScores } from './leaderboard.js';
 
 const STATE = { READY: 'ready', PLAYING: 'playing', OVER: 'over' };
 
@@ -30,10 +30,7 @@ export class Game {
     this._levelFlash     = 0;
     this._bestSoundPlayed = false;
 
-    // Leaderboard state
-    this._leaderboard     = [];   // [{name, score}]
-    this._lbStatus        = 'idle'; // 'idle' | 'loading' | 'done' | 'error'
-    this._nameSubmitted   = false;
+    this._leaderboard     = getTopScores();  // personal best runs from localStorage
   }
 
   setup() {
@@ -186,9 +183,7 @@ export class Game {
     this._scorePop       = 0;
     this._levelFlash     = 0;
     this._bestSoundPlayed = false;
-    this._nameSubmitted  = false;
-    this._lbStatus       = 'idle';
-    this._leaderboard    = [];
+    this._leaderboard    = getTopScores();
   }
 
   // ── Score display ────────────────────────────────────────────────────────────
@@ -262,13 +257,11 @@ export class Game {
     const W = CONFIG.WIDTH;
     const H = CONFIG.HEIGHT;
 
-    // Fire new-best sound and leaderboard fetch once
-    if (this.newBest && !this._bestSoundPlayed) {
+    // Fire new-best sound once and save score to local leaderboard
+    if (!this._bestSoundPlayed) {
       this._bestSoundPlayed = true;
-      this.audio.newBest();
-      this._triggerLeaderboard();
-    } else if (!this.newBest && this._lbStatus === 'idle') {
-      this._fetchLeaderboard();
+      if (this.newBest) this.audio.newBest();
+      this._leaderboard = addScore(this.score);
     }
 
     // Dim overlay
@@ -396,17 +389,9 @@ export class Game {
     p.textSize(9);
     p.noStroke();
     p.fill(180);
-    p.text('── TOP SCORES ──', cx, topY);
+    p.text('── YOUR TOP RUNS ──', cx, topY);
 
-    if (this._lbStatus === 'loading') {
-      p.textStyle(p.NORMAL);
-      p.textSize(9);
-      p.fill(160);
-      p.text('loading…', cx, topY + 16);
-      return;
-    }
-
-    if (this._lbStatus === 'error' || lb.length === 0) {
+    if (lb.length === 0) {
       p.textStyle(p.NORMAL);
       p.textSize(9);
       p.fill(160);
@@ -415,46 +400,18 @@ export class Game {
     }
 
     const rowH = 14;
-    lb.forEach((entry, i) => {
+    lb.forEach((score, i) => {
       const rowY = topY + 14 + i * rowH;
-      const isPlayer = this.newBest && entry.score === this.highscore && i === 0;
-      p.textStyle(isPlayer ? p.BOLD : p.NORMAL);
+      const isCurrent = score === this.score && i === 0;
+      p.textStyle(isCurrent ? p.BOLD : p.NORMAL);
       p.textSize(10);
-      p.fill(isPlayer ? p.color(200, 145, 0) : p.color(50));
+      p.fill(isCurrent ? p.color(200, 145, 0) : p.color(50));
       p.textAlign(p.LEFT);
-      p.text(`${i + 1}. ${entry.name}`, cx - cardW * 0.34, rowY);
+      p.text(`${i + 1}.`, cx - cardW * 0.34, rowY);
       p.textAlign(p.RIGHT);
-      p.text(entry.score, cx + cardW * 0.34, rowY);
+      p.text(score, cx + cardW * 0.34, rowY);
     });
     p.textAlign(p.CENTER);
     p.textStyle(p.NORMAL);
-  }
-
-  async _fetchLeaderboard() {
-    if (this._lbStatus !== 'idle') return;
-    this._lbStatus = 'loading';
-    try {
-      this._leaderboard = await getTopScores(8);
-      this._lbStatus = 'done';
-    } catch (_) {
-      this._lbStatus = 'error';
-    }
-  }
-
-  async _triggerLeaderboard() {
-    if (this._nameSubmitted) return;
-    this._nameSubmitted = true;
-
-    const raw = prompt('New best! Enter your initials (3 letters):', 'AAA');
-    const name = raw ? raw.trim().slice(0, 3).toUpperCase() || 'AAA' : 'AAA';
-
-    this._lbStatus = 'loading';
-    try {
-      await submitScore(name, this.highscore);
-      this._leaderboard = await getTopScores(8);
-      this._lbStatus = 'done';
-    } catch (_) {
-      this._lbStatus = 'error';
-    }
   }
 }
