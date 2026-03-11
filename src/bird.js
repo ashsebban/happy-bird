@@ -92,21 +92,15 @@ export class Bird {
     p.circle(r*0.58, r*0.14, r*0.36);
 
     // eye
-    const eX = r * 0.74;
+    const eX = r * 0.68;
     const eY = -r * 0.40;
     const eW = r * 0.80;
     const eH = r * 0.90;
 
-    // eye — height scales with eyeOpenness, top lid arc always drawn
-    p.stroke(25, 15, 5);
-    p.strokeWeight(0.7);
+    // eye — height scales with eyeOpenness
+    p.noStroke();
     p.fill(255);
     p.ellipse(eX, eY, eW, eH * eo);
-
-    // top eyelid arc always visible (anchors the squint)
-    p.noFill();
-    p.strokeWeight(0.9);
-    p.arc(eX, eY, eW * 0.98, eH * 0.98, Math.PI, 0);
 
     // pupil + shine fade in as eye opens
     if (eo > 0.25) {
