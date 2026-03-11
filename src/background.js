@@ -177,19 +177,20 @@ export class Background {
 
     const redCol    = p.color(255,  38,   5);
     const orangeCol = p.color(255, 140,  20);
-    const yellowCol = p.color(255, 228,  60);
-    const whiteCol  = p.color(255, 255, 238);
+    const yellowCol = p.color(255, 222,  50);  // warm gold
+    const noonCol   = p.color(255, 242, 120);  // bright but still visibly yellow, not white
 
     let sunCol;
     if (sinArc < 0.10)      sunCol = p.lerpColor(redCol,    orangeCol, sinArc / 0.10);
     else if (sinArc < 0.28) sunCol = p.lerpColor(orangeCol, yellowCol, (sinArc - 0.10) / 0.18);
-    else                    sunCol = p.lerpColor(yellowCol,  whiteCol,  Math.min(1, (sinArc - 0.28) / 0.22));
+    else                    sunCol = p.lerpColor(yellowCol,  noonCol,   Math.min(1, (sinArc - 0.28) / 0.40));
 
     const sr = Math.round(p.red(sunCol));
     const sg = Math.round(p.green(sunCol));
     const sb = Math.round(p.blue(sunCol));
 
-    const skyAlpha0 = p.lerp(0.28, 0.13, sinArc);
+    // Sky glow: warm at horizon, very subtle at midday so it doesn't bleach the sky
+    const skyAlpha0 = p.lerp(0.26, 0.07, sinArc);
     const skyGrad   = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, Math.max(W, H) * 1.1);
     skyGrad.addColorStop(0,    `rgba(${sr},${sg},${sb},${skyAlpha0.toFixed(2)})`);
     skyGrad.addColorStop(0.25, `rgba(${sr},${sg},${sb},${(skyAlpha0 * 0.35).toFixed(2)})`);
