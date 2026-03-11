@@ -10,36 +10,60 @@ export class Background {
     this.elapsed = 0;
     this.t = 0;
 
-    // Sky keyframes: { t, zen: p5.Color, hor: p5.Color }
-    // t is distributed unevenly — more time in stable phases, briefer transitions
     this._keyframes = [
-      { t: 0.00, zen: p.color(5,   5,  25), hor: p.color( 12,  12,  45) }, // deep night
-      { t: 0.10, zen: p.color(8,   8,  35), hor: p.color( 18,  15,  55) }, // late night
-      { t: 0.18, zen: p.color(18, 15,  65), hor: p.color( 55,  30,  85) }, // predawn
-      { t: 0.24, zen: p.color(35, 45, 130), hor: p.color(255, 130,  55) }, // sunrise
-      { t: 0.30, zen: p.color(80,140, 215), hor: p.color(200, 225, 255) }, // early morning
-      { t: 0.45, zen: p.color(100,175,255), hor: p.color(165, 215, 255) }, // noon
-      { t: 0.58, zen: p.color(85, 155,235), hor: p.color(185, 225, 255) }, // afternoon
-      { t: 0.68, zen: p.color(60,  90,180), hor: p.color(255, 175,  90) }, // golden hour
-      { t: 0.74, zen: p.color(38,  28, 95), hor: p.color(255,  95,  38) }, // sunset
-      { t: 0.80, zen: p.color(18,  12, 65), hor: p.color(110,  50,  90) }, // dusk
-      { t: 0.88, zen: p.color(8,    8, 40), hor: p.color( 30,  20,  70) }, // blue hour
-      { t: 1.00, zen: p.color(5,    5, 25), hor: p.color( 12,  12,  45) }, // deep night
+      { t: 0.00, zen: p.color(5,   5,  25), hor: p.color( 12,  12,  45) },
+      { t: 0.10, zen: p.color(8,   8,  35), hor: p.color( 18,  15,  55) },
+      { t: 0.18, zen: p.color(18, 15,  65), hor: p.color( 55,  30,  85) },
+      { t: 0.24, zen: p.color(35, 45, 130), hor: p.color(255, 130,  55) },
+      { t: 0.30, zen: p.color(80,140, 215), hor: p.color(200, 225, 255) },
+      { t: 0.45, zen: p.color(100,175,255), hor: p.color(165, 215, 255) },
+      { t: 0.58, zen: p.color(85, 155,235), hor: p.color(185, 225, 255) },
+      { t: 0.68, zen: p.color(60,  90,180), hor: p.color(255, 175,  90) },
+      { t: 0.74, zen: p.color(38,  28, 95), hor: p.color(255,  95,  38) },
+      { t: 0.80, zen: p.color(18,  12, 65), hor: p.color(110,  50,  90) },
+      { t: 0.88, zen: p.color(8,    8, 40), hor: p.color( 30,  20,  70) },
+      { t: 1.00, zen: p.color(5,    5, 25), hor: p.color( 12,  12,  45) },
     ];
 
-    // 80 fixed star positions (upper 75% of sky, above mountains)
     this._stars = Array.from({ length: 80 }, () => ({
       x: p.random(W),
-      y: p.random(H * 0.02, H * 0.58),
+      y: p.random(H * 0.02, H * 0.55),
       r: p.random(0.5, 1.8),
     }));
 
-    // Mountain peak arrays in pixel coordinates (far → mid → near)
-    this._farPeaks  = BG.FAR_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
-    this._midPeaks  = BG.MID_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
-    this._nearPeaks = BG.NEAR_MOUNTAINS.map(pt => ({ x: pt.x * W, y: pt.y * H }));
+    // ── Mountain layers (back → front), sharp vertex() peaks ──────────────────
+    // Layer 1: Distant snow-capped alpine range — very tall, jagged
+    this._snowPeaks = [
+      [0.00, 0.72], [0.05, 0.52], [0.10, 0.63], [0.16, 0.41],
+      [0.21, 0.55], [0.27, 0.44], [0.33, 0.59], [0.40, 0.37],
+      [0.46, 0.51], [0.52, 0.43], [0.58, 0.55], [0.65, 0.45],
+      [0.71, 0.57], [0.78, 0.47], [0.84, 0.61], [0.91, 0.49], [1.00, 0.70],
+    ].map(([x, y]) => [x * W, y * H]);
 
-    // Clouds spread across the canvas
+    // Layer 2: Mid-range mountains — medium height, slightly less sharp
+    this._midPeaks = [
+      [0.00, 0.77], [0.08, 0.61], [0.15, 0.71], [0.23, 0.57],
+      [0.31, 0.67], [0.39, 0.58], [0.47, 0.69], [0.55, 0.56],
+      [0.63, 0.67], [0.71, 0.59], [0.79, 0.69], [0.87, 0.61],
+      [0.94, 0.71], [1.00, 0.75],
+    ].map(([x, y]) => [x * W, y * H]);
+
+    // Layer 3: Dark forested hills — lower, rolling, tree line lives here
+    this._nearHills = [
+      [0.00, 0.81], [0.09, 0.71], [0.20, 0.77], [0.32, 0.67],
+      [0.44, 0.75], [0.57, 0.69], [0.69, 0.77], [0.81, 0.71],
+      [0.91, 0.79], [1.00, 0.81],
+    ].map(([x, y]) => [x * W, y * H]);
+
+    // Layer 4: Foreground rolling meadow — gently undulating just above ground
+    this._fgHills = [
+      [0.00, 0.88], [0.14, 0.83], [0.32, 0.87], [0.52, 0.82],
+      [0.72, 0.86], [0.88, 0.83], [1.00, 0.87],
+    ].map(([x, y]) => [x * W, y * H]);
+
+    // Pine trees scattered along the near hill ridge
+    this._trees = this._genTrees();
+
     this._clouds = Array.from({ length: BG.CLOUD_COUNT }, (_, i) => ({
       x:     (i / BG.CLOUD_COUNT) * W + p.random(W * 0.05),
       y:     p.random(H * 0.05, H * 0.38),
@@ -48,11 +72,11 @@ export class Background {
     }));
   }
 
+  // ── Lifecycle ───────────────────────────────────────────────────────────────
+
   update(dt) {
     this.elapsed = (this.elapsed + dt) % BG.CYCLE_DURATION_MS;
     this.t = this.elapsed / BG.CYCLE_DURATION_MS;
-
-    // Scroll clouds
     for (const c of this._clouds) {
       c.x -= BG.CLOUD_SCROLL_SPEED * c.speed * dt;
       if (c.x + c.size * 2 < 0) c.x = W + c.size * 2;
@@ -61,22 +85,24 @@ export class Background {
 
   draw() {
     const { zenith, horizon } = this._getSkyColors();
-    // Compute warmth/darkness once per frame and pass through
     const w = this._warmth();
     const d = this._darkness();
     this._drawSkyGradient(zenith, horizon);
     this._drawStars();
     this._drawSun();
-    this._drawMountainLayer(this._farPeaks,  this._getFarMountainColor(w, d));
-    this._drawMountainLayer(this._midPeaks,  this._getMidMountainColor(w, d));
-    this._drawMountainLayer(this._nearPeaks, this._getNearMountainColor(w, d));
+    this._drawLayer(this._snowPeaks, this._colSnow(w, d));
+    this._drawSnowCaps(d);
+    this._drawLayer(this._midPeaks,  this._colMid(w, d));
+    this._drawLayer(this._nearHills, this._colNear(w, d));
+    this._drawTrees(w, d);
+    this._drawLayer(this._fgHills,   this._colFg(w, d));
     this._drawClouds(w, d);
   }
 
   // Called by Game after pipe.draw() so pipes appear planted in the ground.
   drawGround() { this._drawGround(); }
 
-  // ─── Private ─────────────────────────────────────────────────────────────
+  // ── Sky ─────────────────────────────────────────────────────────────────────
 
   _getSkyColors() {
     const t = this.t;
@@ -92,7 +118,6 @@ export class Background {
   }
 
   _drawSkyGradient(zenith, horizon) {
-    // Use native Canvas2D gradient — 1 draw call instead of 650 stroke+line pairs
     const p = this.p;
     const ctx = p.drawingContext;
     const grad = ctx.createLinearGradient(0, 0, 0, H);
@@ -105,18 +130,10 @@ export class Background {
   _drawStars() {
     const p = this.p;
     const t = this.t;
-
-    // Stars visible during night: fade in at dusk (0.80), full at blue hour (0.88)
-    // fade out at predawn (0.18), gone by sunrise (0.24)
     let alpha = 0;
-    if (t >= 0.88 || t <= 0.18) {
-      alpha = 255;
-    } else if (t > 0.80 && t < 0.88) {
-      alpha = p.map(t, 0.80, 0.88, 0, 255);
-    } else if (t > 0.18 && t < 0.24) {
-      alpha = p.map(t, 0.18, 0.24, 255, 0);
-    }
-
+    if (t >= 0.88 || t <= 0.18)        alpha = 255;
+    else if (t > 0.80 && t < 0.88)     alpha = p.map(t, 0.80, 0.88, 0, 255);
+    else if (t > 0.18 && t < 0.24)     alpha = p.map(t, 0.18, 0.24, 255, 0);
     if (alpha <= 0) return;
     p.noStroke();
     for (const s of this._stars) {
@@ -131,42 +148,35 @@ export class Background {
     const t = this.t;
     if (t < 0.22 || t > 0.80) return;
 
-    const u = (t - 0.22) / 0.58;          // 0 = rising, 1 = setting
-    const sinArc = Math.sin(u * Math.PI); // 0 at horizon, 1 at noon
-    const sunX = p.lerp(-20, W + 20, u);
-    const sunY = p.lerp(H * 0.62, H * 0.07, sinArc);
-    const sunR = 8;   // small and distant
+    const u       = (t - 0.22) / 0.58;
+    const sinArc  = Math.sin(u * Math.PI);
+    const sunX    = p.lerp(-20, W + 20, u);
+    const sunY    = p.lerp(H * 0.62, H * 0.07, sinArc);
+    const sunR    = 8;
 
-    // Disc color: red → orange → yellow → bright white-yellow, fast transition near horizon
     const redCol    = p.color(255,  38,   5);
     const orangeCol = p.color(255, 140,  20);
     const yellowCol = p.color(255, 228,  60);
     const whiteCol  = p.color(255, 255, 238);
 
     let sunCol;
-    if (sinArc < 0.10) {
-      sunCol = p.lerpColor(redCol, orangeCol, sinArc / 0.10);
-    } else if (sinArc < 0.28) {
-      sunCol = p.lerpColor(orangeCol, yellowCol, (sinArc - 0.10) / 0.18);
-    } else {
-      sunCol = p.lerpColor(yellowCol, whiteCol, Math.min(1, (sinArc - 0.28) / 0.22));
-    }
+    if (sinArc < 0.10)      sunCol = p.lerpColor(redCol, orangeCol, sinArc / 0.10);
+    else if (sinArc < 0.28) sunCol = p.lerpColor(orangeCol, yellowCol, (sinArc - 0.10) / 0.18);
+    else                    sunCol = p.lerpColor(yellowCol, whiteCol, Math.min(1, (sinArc - 0.28) / 0.22));
 
     const sr = Math.round(p.red(sunCol));
     const sg = Math.round(p.green(sunCol));
     const sb = Math.round(p.blue(sunCol));
 
-    // Wide sky-brightening radial gradient — makes it feel like the sun lights the world
     const skyGlowR  = Math.max(W, H) * 1.1;
     const skyAlpha0 = p.lerp(0.28, 0.13, sinArc);
-    const skyGrad = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, skyGlowR);
+    const skyGrad   = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, skyGlowR);
     skyGrad.addColorStop(0,    `rgba(${sr},${sg},${sb},${skyAlpha0.toFixed(2)})`);
     skyGrad.addColorStop(0.25, `rgba(${sr},${sg},${sb},${(skyAlpha0 * 0.35).toFixed(2)})`);
     skyGrad.addColorStop(1,    `rgba(${sr},${sg},${sb},0)`);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // Tight corona — soft bloom just around the disc, not a large halo
     const coronaGrad = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 5);
     coronaGrad.addColorStop(0, `rgba(${sr},${sg},${sb},0.90)`);
     coronaGrad.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
@@ -175,109 +185,180 @@ export class Background {
     ctx.arc(sunX, sunY, sunR * 5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Sun disc — sharp, tiny, intense
     p.noStroke();
     p.fill(sunCol);
     p.circle(sunX, sunY, sunR * 2);
-    // Bright specular core
     p.fill(255, 255, 255, 210);
     p.circle(sunX - sunR * 0.18, sunY - sunR * 0.22, sunR * 0.75);
   }
 
-  _drawMountainLayer(peaks, col) {
+  // ── Mountains ───────────────────────────────────────────────────────────────
+
+  // Sharp angular silhouette using vertex() — no smooth curves
+  _drawLayer(pts, col) {
     const p = this.p;
     p.fill(col);
     p.noStroke();
     p.beginShape();
-    p.curveVertex(0, H);                       // phantom anchor
-    p.curveVertex(0, H);                       // bottom-left
-    for (const pt of peaks) p.curveVertex(pt.x, pt.y);
-    p.curveVertex(W, H);                       // bottom-right
-    p.curveVertex(W, H);                       // phantom anchor
+    p.vertex(0, H);
+    for (const [x, y] of pts) p.vertex(x, y);
+    p.vertex(W, H);
     p.endShape(p.CLOSE);
   }
 
+  // White snow caps drawn on the peaks of the snow mountain layer
+  _drawSnowCaps(d) {
+    const p = this.p;
+    const snowAlpha = p.lerp(200, 40, d);
+    p.noStroke();
+    const pts = this._snowPeaks;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [x, y] = pts[i];
+      const prevY = pts[i - 1][1];
+      const nextY = pts[i + 1][1];
+      if (y < prevY && y < nextY) {
+        // Peak — draw a snow triangle sized by how prominent the peak is
+        const capH = (Math.min(prevY, nextY) - y) * 0.30;
+        p.fill(225, 235, 255, snowAlpha);
+        p.triangle(x, y, x - capH * 1.1, y + capH, x + capH * 1.1, y + capH);
+        // Bright highlight at the very tip
+        p.fill(255, 255, 255, snowAlpha * 0.7);
+        p.triangle(x, y, x - capH * 0.45, y + capH * 0.45, x + capH * 0.45, y + capH * 0.45);
+      }
+    }
+  }
+
+  // Pine trees as 2-tier triangle silhouettes along the near hill ridge
+  _drawTrees(w, d) {
+    const p = this.p;
+    const base = this._colNear(w, d);
+    // Slightly darker than the hill they sit on
+    const cr = Math.max(0, p.red(base)   - 14);
+    const cg = Math.max(0, p.green(base) - 20);
+    const cb = Math.max(0, p.blue(base)  - 6);
+    p.noStroke();
+    p.fill(cr, cg, cb);
+    for (const { x, y, h, tw } of this._trees) {
+      // Upper (narrower) tier
+      p.triangle(x, y - h,        x - tw * 0.40, y - h * 0.35, x + tw * 0.40, y - h * 0.35);
+      // Lower (wider) tier
+      p.triangle(x, y - h * 0.55, x - tw * 0.58, y,            x + tw * 0.58, y);
+    }
+  }
+
+  // Pre-generate randomised tree positions along the near hill ridge
+  _genTrees() {
+    const p = this.p;
+    const trees = [];
+    let x = p.random(6, 16);
+    while (x < W - 6) {
+      const y = this._hillY(this._nearHills, x);
+      trees.push({ x, y, h: p.random(13, 23), tw: p.random(7, 11) });
+      x += p.random(10, 22);
+    }
+    return trees;
+  }
+
+  // Linear interpolation of y along a layer's ridge at a given x
+  _hillY(pts, x) {
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (x >= pts[i][0] && x <= pts[i + 1][0]) {
+        const u = (x - pts[i][0]) / (pts[i + 1][0] - pts[i][0]);
+        return pts[i][1] + u * (pts[i + 1][1] - pts[i][1]);
+      }
+    }
+    return pts[pts.length - 1][1];
+  }
+
+  // ── Time helpers ─────────────────────────────────────────────────────────────
+
   _warmth() {
     const t = this.t;
-    const w = Math.max(
-      1 - Math.abs(t - 0.24) / 0.10,   // sunrise influence
-      1 - Math.abs(t - 0.74) / 0.10    // sunset influence
-    );
-    return Math.min(1, Math.max(0, w));
+    return Math.min(1, Math.max(0, Math.max(
+      1 - Math.abs(t - 0.24) / 0.10,
+      1 - Math.abs(t - 0.74) / 0.10,
+    )));
   }
 
   _darkness() {
-    // 0 = bright noon, 1 = deep night — derived from t proximity to night
     const t = this.t;
-    const nightness = t >= 0.88 || t <= 0.10
-      ? 1
-      : t > 0.80 ? this.p.map(t, 0.80, 0.88, 0, 1)
-      : t < 0.18 ? this.p.map(t, 0.10, 0.18, 1, 0)
-      : 0;
-    return nightness;
+    if (t >= 0.88 || t <= 0.10)  return 1;
+    if (t > 0.80)                return this.p.map(t, 0.80, 0.88, 0, 1);
+    if (t < 0.18)                return this.p.map(t, 0.10, 0.18, 1, 0);
+    return 0;
   }
 
-  // Atmospheric perspective: far = pale/hazy (barely separates from sky),
-  // mid = muted mid-tone, near = dark saturated silhouette.
-  _getFarMountainColor(w, d) {
+  // ── Layer colors (atmospheric perspective: far = pale/hazy, near = saturated) ─
+
+  _colSnow(w, d) {
     const p = this.p;
-    const day  = p.color(168, 188, 210);  // pale blue-gray atmospheric haze
-    const warm = p.color(210, 155, 120);  // warm dusty rose at sunrise/sunset
-    const night= p.color( 18,  16,  38);  // near-invisible at night
-    return p.lerpColor(p.lerpColor(day, warm, w), night, d);
+    // Day: pale steel-blue haze. Warm: dusty mauve. Night: near-invisible dark.
+    return p.lerpColor(
+      p.lerpColor(p.color(150, 172, 202), p.color(185, 142, 115), w),
+      p.color(13, 12, 28), d,
+    );
   }
 
-  _getMidMountainColor(w, d) {
+  _colMid(w, d) {
     const p = this.p;
-    const day  = p.color( 72, 100,  80);  // muted sage green
-    const warm = p.color(105,  68,  48);  // warm ochre/brown
-    const night= p.color( 10,  10,  24);
-    return p.lerpColor(p.lerpColor(day, warm, w), night, d);
+    // Day: muted slate-blue. Warm: warm umber. Night: dark navy.
+    return p.lerpColor(
+      p.lerpColor(p.color(62, 85, 116), p.color(92, 62, 48), w),
+      p.color(8, 8, 19), d,
+    );
   }
 
-  _getNearMountainColor(w, d) {
+  _colNear(w, d) {
     const p = this.p;
-    const day  = p.color( 32,  52,  38);  // dark forest green
-    const warm = p.color( 55,  32,  22);  // dark russet
-    const night= p.color(  5,   5,  12);
-    return p.lerpColor(p.lerpColor(day, warm, w), night, d);
+    // Day: dark forest green. Warm: deep russet. Night: near-black.
+    return p.lerpColor(
+      p.lerpColor(p.color(30, 60, 38), p.color(50, 33, 20), w),
+      p.color(4, 6, 10), d,
+    );
   }
 
-  _cloudTint(w, d) {
+  _colFg(w, d) {
     const p = this.p;
-    const white  = p.color(255, 255, 255, 230);
-    const orange = p.color(255, 175, 110, 210);
-    const dark   = p.color( 55,  55,  75, 180);
-    return p.lerpColor(p.lerpColor(white, orange, w), dark, d);
+    // Slightly lighter/warmer than near hills to separate the layers
+    return p.lerpColor(
+      p.lerpColor(p.color(44, 78, 44), p.color(62, 40, 22), w),
+      p.color(6, 8, 13), d,
+    );
   }
+
+  // ── Clouds ───────────────────────────────────────────────────────────────────
 
   _drawClouds(w, d) {
-    const tint = this._cloudTint(w, d);
-    for (const c of this._clouds) this._drawCloud(c.x, c.y, c.size, tint);
-  }
-
-  _drawGround() {
     const p = this.p;
-    const gh = CONFIG.GROUND_HEIGHT;
-    p.noStroke();
-    p.rectMode(p.CORNER);
-    // Dirt base
-    p.fill(101, 72, 42);
-    p.rect(0, H - gh, W, gh);
-    // Grass cap
-    p.fill(86, 175, 60);
-    p.rect(0, H - gh, W, Math.ceil(gh * 0.38));
-    p.rectMode(p.CENTER);
+    const tint = p.lerpColor(
+      p.lerpColor(p.color(255, 255, 255, 230), p.color(255, 175, 110, 210), w),
+      p.color(55, 55, 75, 180), d,
+    );
+    for (const c of this._clouds) this._drawCloud(c.x, c.y, c.size, tint);
   }
 
   _drawCloud(cx, cy, size, col) {
     const p = this.p;
     p.noStroke();
     p.fill(col);
-    p.ellipse(cx,                  cy,                  size,        size);
-    p.ellipse(cx + 0.5 * size,     cy + 0.1  * size,    0.8 * size,  0.8 * size);
-    p.ellipse(cx - 0.5 * size,     cy + 0.1  * size,    0.8 * size,  0.8 * size);
-    p.ellipse(cx + 0.9 * size,     cy + 0.15 * size,    0.5 * size,  0.5 * size);
-    p.ellipse(cx - 0.9 * size,     cy + 0.15 * size,    0.5 * size,  0.5 * size);
+    p.ellipse(cx,                cy,               size,       size);
+    p.ellipse(cx + 0.5 * size,   cy + 0.1 * size,  0.8 * size, 0.8 * size);
+    p.ellipse(cx - 0.5 * size,   cy + 0.1 * size,  0.8 * size, 0.8 * size);
+    p.ellipse(cx + 0.9 * size,   cy + 0.15 * size, 0.5 * size, 0.5 * size);
+    p.ellipse(cx - 0.9 * size,   cy + 0.15 * size, 0.5 * size, 0.5 * size);
+  }
+
+  // ── Ground ───────────────────────────────────────────────────────────────────
+
+  _drawGround() {
+    const p = this.p;
+    const gh = CONFIG.GROUND_HEIGHT;
+    p.noStroke();
+    p.rectMode(p.CORNER);
+    p.fill(101, 72, 42);
+    p.rect(0, H - gh, W, gh);
+    p.fill(86, 175, 60);
+    p.rect(0, H - gh, W, Math.ceil(gh * 0.38));
+    p.rectMode(p.CENTER);
   }
 }
