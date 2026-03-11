@@ -92,7 +92,7 @@ export class Bird {
     p.circle(r*0.58, r*0.14, r*0.36);
 
     // eye
-    const eX = r * 0.60;
+    const eX = r * 0.74;
     const eY = -r * 0.40;
     const eW = r * 0.80;
     const eH = r * 0.90;

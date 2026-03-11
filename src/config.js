@@ -7,9 +7,9 @@ export const CONFIG = {
     WIDTH: 44,
     HEIGHT: 44,
     X: 87.5,
-    GRAVITY: 0.65,
-    JUMP_FORCE: 6.5,
-    MAX_FALL: 13,
+    GRAVITY: 0.55,
+    JUMP_FORCE: 7.0,
+    MAX_FALL: 10,
   },
 
   PIPE: {

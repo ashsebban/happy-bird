@@ -17,7 +17,7 @@ export class Pipe {
   // Called by Game after a score event to reposition and randomize the pipe.
   wrap(score) {
     this.x = CONFIG.WIDTH + CONFIG.PIPE.WIDTH;
-    const change = this.p.random(10) * 15;
+    const change = this.p.random(8) * 10;
     this.offset = score % 2 === 0 ? -change : change;
   }
 

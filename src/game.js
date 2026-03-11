@@ -104,12 +104,10 @@ export class Game {
   _handleTap() {
     if (this.state === STATE.READY) {
       this.state = STATE.PLAYING;
-      this.audio.flap();
     } else if (this.state === STATE.OVER && this._deathTimer > 50) {
       this._reset();
     } else if (this.state === STATE.PLAYING && !this.collided) {
       this.bird.vy = -CONFIG.BIRD.JUMP_FORCE;
-      this.audio.flap();
     }
   }
 
