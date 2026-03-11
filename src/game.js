@@ -420,21 +420,23 @@ export class Game {
     const p = this.p;
     const t = this.background ? this.background.t : 0;
     const totalMins = Math.floor(t * 24 * 60);
-    const hh = Math.floor(totalMins / 60) % 24;
-    const mm = totalMins % 60;
-    const label = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    const h24  = Math.floor(totalMins / 60) % 24;
+    const mm   = totalMins % 60;
+    const ampm = h24 < 12 ? 'am' : 'pm';
+    const h12  = h24 % 12 || 12;
+    const label = `${h12}:${String(mm).padStart(2, '0')}${ampm}`;
 
     // Pill background
     p.noStroke();
     p.fill(0, 0, 0, 55);
     p.rectMode(p.CORNER);
-    p.rect(CONFIG.WIDTH - 46, 8, 38, 16, 8);
+    p.rect(CONFIG.WIDTH - 52, 8, 44, 16, 8);
     p.rectMode(p.CENTER);
 
     p.textAlign(p.CENTER);
     p.textStyle(p.NORMAL);
     p.textSize(9);
     p.fill(255, 255, 255, 200);
-    p.text(label, CONFIG.WIDTH - 27, 19);
+    p.text(label, CONFIG.WIDTH - 30, 19);
   }
 }
