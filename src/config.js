@@ -24,7 +24,7 @@ export const CONFIG = {
   },
 
   BACKGROUND: {
-    CYCLE_DURATION_MS: 600000,     // 10 minutes = one full day/night cycle
+    CYCLE_DURATION_MS: 480000,     // 8 minutes = one full day/night cycle
     CLOUD_COUNT: 4,
     CLOUD_SCROLL_SPEED: 0.012,     // px per ms
     // Three hill layers — far to near. Y values are 0–1 fractions of HEIGHT.
