@@ -7,8 +7,9 @@ const BG = CONFIG.BACKGROUND;
 export class Background {
   constructor(p) {
     this.p = p;
-    this.elapsed = 0;
-    this.t = 0;
+    // Start just before sunrise (t ≈ 0.20 — purple pre-dawn sky, horizon warming)
+    this.elapsed = 0.20 * BG.CYCLE_DURATION_MS;
+    this.t = 0.20;
 
     this._keyframes = [
       { t: 0.00, zen: p.color(5,   5,  25), hor: p.color( 12,  12,  45) },
